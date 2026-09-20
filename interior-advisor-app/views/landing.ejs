@@ -1,8 +1,39 @@
 <!doctype html>
 <html lang="en">
 <head><%- include('partials/head', { title: 'Interior Decision Advisor — Independent interior decision advisory' }) %></head>
-<body>
-<%- include('partials/topbar') %>
+<body class="landing-page">
+  <header class="landing-header">
+    <div class="landing-header-inner">
+      <div class="landing-brand" aria-label="Interior Decision Advisor home">
+        <span class="landing-brand-mark" aria-hidden="true"></span>
+        <div class="landing-brand-copy">
+          <span class="landing-brand-name">Interior Decision Advisor</span>
+          <span class="landing-brand-sub">Interior decision advisory</span>
+        </div>
+      </div>
+
+      <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
+        <span class="menu-lines" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="landing-menu" id="landingMenu" aria-label="Main navigation">
+    <div class="landing-menu-inner">
+      <a href="#how-it-works">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#about">About</a>
+      <a href="#faq">FAQ</a>
+      <a href="/advisor/cases">Dashboard</a>
+    </div>
+    <a class="landing-cta" href="/start">Start Your Check</a>
+  </nav>
+
 <main>
   <div class="wrap">
     <div class="hero">
@@ -130,5 +161,35 @@
   </div>
 </main>
 <%- include('partials/footer') %>
+
+<script>
+  const menuToggle = document.querySelector('.landing-menu-toggle');
+  const landingMenu = document.getElementById('landingMenu');
+  const menuLinks = landingMenu ? landingMenu.querySelectorAll('a') : [];
+
+  if (menuToggle && landingMenu) {
+    menuToggle.addEventListener('click', () => {
+      const isOpen = landingMenu.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+      document.body.classList.toggle('menu-open', isOpen);
+    });
+
+    menuLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        landingMenu.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!landingMenu.contains(event.target) && !menuToggle.contains(event.target)) {
+        landingMenu.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
+      }
+    });
+  }
+</script>
 </body>
 </html>
