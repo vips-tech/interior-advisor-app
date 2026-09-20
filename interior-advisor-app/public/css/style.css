@@ -196,13 +196,13 @@ nav.advisor-nav a.active,nav.advisor-nav a:hover{color:var(--brand)}
   max-width:1280px;
   margin:0 auto;
   padding:0 20px 0;
-  display:flex;
+  display:none;
   flex-direction:column;
   gap:18px;
 }
 
-.landing-menu:not(.open){
-  display:none;
+.landing-menu.open{
+  display:flex;
 }
 
 .landing-menu-inner{
