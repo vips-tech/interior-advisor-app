@@ -100,8 +100,8 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
   function renderPayment(res, c, error) {
     res.render('payment', {
       c, service: SERVICES[c.service],
-      upiId: process.env.UPI_ID || 'yourupi@bank',
-      payeeName: process.env.PAYEE_NAME || 'Interior Decision Advisor',
+      upiId: process.env.UPI_ID || 'interioradvisor@upi',
+      payeeName: process.env.PAYEE_NAME || 'Interior Advisor',
       businessPhone: process.env.BUSINESS_PHONE || '',
       error,
     });
