@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="how-it-works">
       <h2>How it works</h2>
       <ol class="small muted" style="padding-left:18px">
         <li>Choose CHECK or VERIFY and complete payment.</li>
@@ -78,7 +78,39 @@
       </ol>
     </div>
 
-    <div class="section">
+    <div class="section" id="pricing">
+      <h2>Pricing</h2>
+      <div class="grid-2">
+        <div class="card service-card">
+          <span class="pill">CHECK</span>
+          <h3>Quote Check</h3>
+          <div class="price">₹<%= SERVICES.CHECK.price.toLocaleString('en-IN') %></div>
+          <p class="muted"><%= SERVICES.CHECK.blurb %></p>
+          <ul>
+            <li>Up to 3 quotations reviewed and compared</li>
+            <li>Gaps and missing/ambiguous items flagged</li>
+            <li>Written recommendation with trade-offs</li>
+            <li>2–4 business day turnaround</li>
+          </ul>
+          <a class="btn outline" href="/start">Start CHECK</a>
+        </div>
+        <div class="card service-card">
+          <span class="pill">VERIFY</span>
+          <h3>Quote Verify</h3>
+          <div class="price">₹<%= SERVICES.VERIFY.price.toLocaleString('en-IN') %></div>
+          <p class="muted"><%= SERVICES.VERIFY.blurb %></p>
+          <ul>
+            <li>Everything in CHECK</li>
+            <li>We call each company directly — materials, hardware, exclusions, feasibility</li>
+            <li>Clarifications / revised quotes requested where needed</li>
+            <li>2–4 business day turnaround</li>
+          </ul>
+          <a class="btn outline" href="/start">Start VERIFY</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="about">
       <h2>Why not just compare the quotes myself?</h2>
       <p class="small muted">Interior companies quote in different formats, and cheaper often means something
         was left out — a material downgrade, an excluded item, a hidden cost. Quotation-comparison tools only
@@ -89,10 +121,10 @@
         not to design or build.</p>
     </div>
 
-    <div class="section" style="text-align:center">
-      <h2>Not sure what kind of help you need?</h2>
-      <p class="muted">Tell us where you are in your interior journey and what decision you're facing.
-        We'll tell you how we can help.</p>
+    <div class="section" id="faq" style="text-align:center">
+      <h2>Frequently asked questions</h2>
+      <p class="muted">We are not a sales channel for interior companies. We help you understand what is really being offered and what decision you should make.</p>
+      <p class="muted">Need a custom answer? <a href="/talk-to-advisor">Tell us what you need</a></p>
       <p><a class="btn" href="/talk-to-advisor">Tell Us What You Need</a></p>
     </div>
   </div>
