@@ -1,10 +1,11 @@
 :root{
   --ink:#1c1f24;
   --ink-soft:#565f6b;
-  --bg:#faf9f6;
+  --bg:#f4f1ee;
   --card:#ffffff;
-  --line:#e4e1da;
-  --brand:#1f3a34;
+  --line:#dfe3df;
+  --brand:#1b3533;
+  --brand-dark:#0d2d2d;
   --brand-light:#2f574d;
   --accent:#c98a3a;
   --ok:#2f6f4e;
@@ -103,3 +104,181 @@ nav.advisor-nav a{color:var(--ink-soft);text-decoration:none;font-weight:600}
 nav.advisor-nav a.active,nav.advisor-nav a:hover{color:var(--brand)}
 .two-col{display:grid;grid-template-columns:1.3fr .9fr;gap:20px}
 @media (max-width:900px){.two-col{grid-template-columns:1fr}}
+
+.page-talk{background:#f4f1ee}
+.page-talk .brand-hero{
+  background:linear-gradient(180deg, #163d39 0%, #0d2e2d 100%);
+  color:#edf5f2;
+  padding-bottom:26px;
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,0.08);
+}
+.page-talk .brand-hero-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  max-width:1260px;
+  padding-top:34px;
+  padding-bottom:12px;
+}
+.page-talk .brand-lockup{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:700;
+  font-size:1.1rem;
+  color:#f4f2ef;
+}
+.page-talk .brand-mark{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:linear-gradient(135deg, #e9d9b8 0%, #d99a4e 100%);
+  display:inline-block;
+  box-shadow:0 0 0 4px rgba(255,255,255,0.08);
+}
+.page-talk .brand-name{letter-spacing:-0.02em}
+.page-talk .brand-links{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  font-size:0.96rem;
+  letter-spacing:0.01em;
+  text-transform:uppercase;
+  color:rgba(237,245,242,0.82);
+}
+.page-talk .brand-links span{
+  font-size:0.72rem;
+  letter-spacing:0.15em;
+  color:rgba(237,245,242,0.72);
+  margin-bottom:2px;
+}
+.page-talk .brand-links a{
+  color:rgba(237,245,242,0.88);
+  text-decoration:none;
+  font-weight:500;
+}
+.page-talk .brand-hero-copy{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:32px;
+  max-width:1260px;
+  padding-top:8px;
+  padding-bottom:10px;
+}
+.page-talk .brand-copy-left{
+  max-width:540px;
+  font-size:1.03rem;
+  color:rgba(237,245,242,0.85);
+  line-height:1.52;
+}
+.page-talk .brand-copy-right h2{
+  margin:0;
+  font-size:1.05rem;
+  line-height:1.5;
+  font-weight:500;
+  color:rgba(237,245,242,0.92);
+  font-style:normal;
+  letter-spacing:-0.02em;
+}
+.page-talk .brand-hero-bottom{
+  max-width:1260px;
+  padding-top:18px;
+}
+.page-talk .brand-independence{
+  display:block;
+  max-width:420px;
+  color:rgba(237,245,242,0.85);
+}
+.page-talk .brand-independence span{
+  display:block;
+  font-size:0.76rem;
+  letter-spacing:0.14em;
+  color:rgba(237,245,242,0.7);
+  margin-bottom:10px;
+}
+.page-talk .brand-independence p{
+  margin:0 0 6px;
+  font-size:1.02rem;
+  line-height:1.45;
+}
+.page-talk .topbar .wrap{
+  max-width:1260px;
+  padding-top:18px;
+  padding-bottom:18px;
+}
+.page-talk .form-wrap{
+  max-width:720px;
+  margin:0 auto;
+  padding-top:32px;
+}
+.page-talk .form-wrap h1{
+  margin:0 0 12px;
+  font-size:2.05rem;
+  line-height:1.2;
+  color:#1c2b2a;
+  text-align:center;
+  letter-spacing:-0.04em;
+}
+.page-talk .intro-copy{
+  max-width:620px;
+  margin:0 auto 18px;
+  text-align:center;
+  font-size:0.92rem;
+  line-height:1.6;
+}
+.page-talk form.stack{
+  gap:16px;
+}
+.page-talk label{
+  font-size:0.9rem;
+  margin-bottom:6px;
+  color:#2c3837;
+}
+.page-talk input[type=text],
+.page-talk input[type=email],
+.page-talk input[type=tel],
+.page-talk textarea,
+.page-talk select{
+  border:1px solid #d5d7d2;
+  background:#f8f8f7;
+  border-radius:8px;
+  padding:12px 14px;
+  box-shadow:none;
+}
+.page-talk textarea{min-height:110px}
+.page-talk .dark-btn{
+  width:100%;
+  border-radius:8px;
+  background:linear-gradient(180deg, #173d39 0%, #0d2d2d 100%);
+  padding:16px 18px;
+  font-size:1.05rem;
+  border:none;
+}
+.page-talk .footer-note{
+  margin-top:18px;
+  text-align:center;
+  font-size:0.9rem;
+}
+.page-talk .footer-note a{
+  color:var(--brand-light);
+  font-weight:600;
+}
+
+@media (max-width: 700px){
+  .page-talk .brand-hero-inner,
+  .page-talk .brand-hero-copy{
+    flex-direction:column;
+  }
+  .page-talk .brand-links{
+    margin-top:8px;
+  }
+  .page-talk .brand-copy-left,
+  .page-talk .brand-copy-right{
+    max-width:none;
+  }
+  .page-talk .form-wrap h1{
+    font-size:1.75rem;
+  }
+}

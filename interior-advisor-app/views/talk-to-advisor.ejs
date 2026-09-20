@@ -1,12 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head><%- include('partials/head', { title: 'Talk to an Advisor — Interior Decision Advisor' }) %></head>
-<body>
+<body class="page-talk">
+  <section class="brand-hero">
+    <div class="wrap brand-hero-inner">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Sondre Advisory</span>
+      </div>
+      <nav class="brand-links" aria-label="Explore links">
+        <span>EXPLORE</span>
+        <a href="#">How it works</a>
+        <a href="#">Pricing</a>
+        <a href="#">About</a>
+        <a href="#">FAQ</a>
+        <a href="#">Dashboard</a>
+        <a href="#">Internal console</a>
+      </nav>
+    </div>
+
+    <div class="wrap brand-hero-copy">
+      <div class="brand-copy-left">
+        <p>Independent advisory on materials, drawings, scope and quotations — so you know exactly what you are buying before you commit.</p>
+      </div>
+      <div class="brand-copy-right">
+        <h2>Your home. Your money. Your decision.</h2>
+      </div>
+    </div>
+
+    <div class="wrap brand-hero-bottom">
+      <div class="brand-independence">
+        <span>INDEPENDENCE</span>
+        <p>We do not sell or execute interiors.</p>
+        <p>We are not paid by any interior companies to rank them.</p>
+      </div>
+    </div>
+  </section>
+
 <%- include('partials/topbar') %>
 <main>
-  <div class="wrap" style="max-width:640px">
-    <h1 style="font-size:1.4rem;color:var(--brand)">Tell us what you need</h1>
-    <p class="muted small">Not sure whether CHECK, VERIFY, or something else is the right fit? Tell us where
+  <div class="wrap form-wrap">
+    <h1>Tell us what you need</h1>
+    <p class="muted small intro-copy">Not sure whether CHECK, VERIFY, or something else is the right fit? Tell us where
       you are in your interior journey and what decision you're facing — we'll tell you how we can help.
       This is just a message to us, not a payment or a commitment.</p>
     <% if (error) { %><div class="error"><%= error %></div><% } %>
@@ -44,9 +79,9 @@
         <label>What decision or help do you need? *</label>
         <textarea name="message" required maxlength="2000" rows="4" placeholder="e.g. I have two quotes and can't tell which is fair — or — I'd like someone to come with me to a showroom."></textarea>
       </div>
-      <button class="btn" type="submit">Send</button>
+      <button class="btn dark-btn" type="submit">Send</button>
     </form>
-    <p class="small muted" style="margin-top:16px">Already have quotations and want a structured comparison?
+    <p class="small muted footer-note">Already have quotations and want a structured comparison?
       <a href="/start">Start a CHECK or VERIFY case</a> instead.</p>
   </div>
 </main>
