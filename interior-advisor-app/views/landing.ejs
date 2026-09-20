@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
+      <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" onclick="var menu=document.getElementById('landingMenu'); var isOpen=menu.classList.toggle('open'); this.setAttribute('aria-expanded', String(isOpen));">
         <span class="menu-lines" aria-hidden="true">
           <span></span>
           <span></span>
@@ -161,35 +161,5 @@
   </div>
 </main>
 <%- include('partials/footer') %>
-
-<script>
-  const menuToggle = document.querySelector('.landing-menu-toggle');
-  const landingMenu = document.getElementById('landingMenu');
-  const menuLinks = landingMenu ? landingMenu.querySelectorAll('a') : [];
-
-  if (menuToggle && landingMenu) {
-    menuToggle.addEventListener('click', () => {
-      const isOpen = landingMenu.classList.toggle('open');
-      menuToggle.setAttribute('aria-expanded', String(isOpen));
-      document.body.classList.toggle('menu-open', isOpen);
-    });
-
-    menuLinks.forEach((link) => {
-      link.addEventListener('click', () => {
-        landingMenu.classList.remove('open');
-        menuToggle.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('menu-open');
-      });
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!landingMenu.contains(event.target) && !menuToggle.contains(event.target)) {
-        landingMenu.classList.remove('open');
-        menuToggle.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('menu-open');
-      }
-    });
-  }
-</script>
 </body>
 </html>
