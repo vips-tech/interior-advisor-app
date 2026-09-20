@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" onclick="var menu=document.getElementById('landingMenu'); var isOpen=menu.classList.toggle('open'); this.setAttribute('aria-expanded', String(isOpen));">
+      <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
         <span class="menu-lines" aria-hidden="true">
           <span></span>
           <span></span>
@@ -161,5 +161,19 @@
   </div>
 </main>
 <%- include('partials/footer') %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggle = document.querySelector('.landing-menu-toggle');
+    const menu = document.getElementById('landingMenu');
+
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener('click', function () {
+      const isOpen = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    });
+  });
+</script>
 </body>
 </html>
