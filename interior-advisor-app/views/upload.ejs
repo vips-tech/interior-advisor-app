@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Upload quotations — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:640px">
+    <div class="steps">
+      <span class="step">1. Choose service</span>
+      <span class="step">2. Pay</span>
+      <span class="step">3. Tell us about your home</span>
+      <span class="step active">4. Upload quotes</span>
+      <span class="step">5. Submit</span>
+    </div>
+    <h1 style="font-size:1.4rem;color:var(--brand)">Upload your quotations</h1>
+    <p class="muted small">Add each company's quotation as a separate file (PDF, image, or Word document). You can add more than one.
+      You can also add supporting documents (floor plan, photo, previous communication, reference design) — these are kept
+      for reference and are not used in the quotation comparison.</p>
+
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+    <% if (locked) { %><div class="notice">This case has already been submitted and is now read-only. Contact us if you need to change something.</div><% } %>
+
+    <% if (!locked) { %>
+    <form class="stack" method="post" action="/case/<%= c.id %>/upload" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="row-2">
+        <div>
+          <label>Document type</label>
+          <select name="doc_type" id="doc_type" onchange="document.getElementById('subtype-row').hidden = (this.value !== 'SUPPORTING'); document.getElementById('company-row').hidden = (this.value === 'SUPPORTING');">
+            <option value="QUOTATION">Quotation (up to 3 per case)</option>
+            <option value="SUPPORTING">Supporting document</option>
+          </select>
+        </div>
+        <div>
+          <label>Quotation file</label>
+          <input type="file" name="quote_file" required accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx">
+        </div>
+      </div>
+      <div class="row-2" id="company-row">
+        <div>
+          <label>Company name</label>
+          <input type="text" name="company_name" placeholder="e.g. Livspace, Homelane, local vendor name">
+        </div>
+      </div>
+      <div class="row-2" id="subtype-row" hidden>
+        <div>
+          <label>Supporting document type</label>
+          <select name="doc_subtype">
+            <option>Floor plan</option>
+            <option>Photo</option>
+            <option>Previous communication</option>
+            <option>Reference design</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn outline" type="submit">Add this document</button>
+    </form>
+    <% } %>
+
+    <div class="section">
+      <h2 style="font-size:1.05rem">Uploaded so far (<%= quotes.length %>)</h2>
+      <% if (quotes.length === 0) { %>
+        <p class="muted small">No documents uploaded yet.</p>
+      <% } else { %>
+        <ul class="list-plain">
+          <% quotes.forEach(q => { %>
+            <li class="file-row">
+              <span>
+                <% if ((q.doc_type || 'QUOTATION') === 'SUPPORTING') { %>
+                  <span class="muted small">[Supporting<%= q.doc_subtype ? ': ' + q.doc_subtype : '' %>]</span>
+                <% } else { %>
+                  <strong><%= q.company_name %></strong>
+                <% } %>
+                — <span class="muted small"><%= q.original_filename %></span>
+              </span>
+              <% if (!locked) { %>
+              <form method="post" action="/case/<%= c.id %>/upload/<%= q.id %>/delete" onsubmit="return confirm('Remove this document?')">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn small danger" type="submit">Remove</button>
+              </form>
+              <% } %>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+
+    <% if (!locked) { %>
+    <form method="post" action="/case/<%= c.id %>/submit" class="stack">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="card" style="padding:14px">
+        <p class="small muted" style="margin-top:0"><%= shortDisclaimerCheckout %></p>
+        <label style="font-weight:400;display:flex;gap:8px;align-items:flex-start">
+          <input type="checkbox" name="agree_terms" value="1" style="width:auto;margin-top:3px" required>
+          <span class="small">I have read and agree to the <a href="/terms" target="_blank">Terms of Service</a>,
+            <a href="/privacy" target="_blank">Privacy Policy</a> and <a href="/disclaimer" target="_blank">Disclaimer</a>.</span>
+        </label>
+      </div>
+      <button class="btn" type="submit" <%= quotes.length === 0 ? 'disabled' : '' %>>Submit my case</button>
+    </form>
+    <% } %>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

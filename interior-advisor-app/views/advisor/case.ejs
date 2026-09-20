@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head', { title: 'Case ' + c.id.slice(0,8) + ' — Advisor workspace' }) %></head>
+<body>
+<div class="topbar">
+  <div class="wrap flex-between">
+    <a class="brand" href="/advisor/cases">← All cases</a>
+    <nav class="advisor-nav">
+      <a href="#profile">Profile</a><a href="#quotes">Quotes</a><a href="#notes">Notes</a>
+      <% if (c.service === 'VERIFY') { %><a href="#investigation">Investigation</a><% } %>
+      <a href="#comparison">Comparison</a><a href="#recommendation">Recommendation</a><a href="#report">Report</a><a href="#ai">AI-assist</a>
+    </nav>
+    <form method="post" action="/advisor/logout"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn small outline" type="submit">Log out</button></form>
+  </div>
+</div>
+<main>
+  <div class="wrap">
+    <div class="flex-between">
+      <h1 style="color:var(--brand);font-size:1.3rem;margin-bottom:4px">
+        <%= c.customer_name || 'Unnamed customer' %> — <%= c.service %> <span class="case-status"><%= c.status %></span>
+      </h1>
+    </div>
+    <p class="small muted" style="font-family:monospace">Case ID: <%= c.id %></p>
+
+    <div class="two-col">
+      <div>
+        <!-- CUSTOMER INFO -->
+        <div class="card" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Customer & Case Info</h2>
+          <table>
+            <tr><th>Phone</th><td><%= c.customer_phone %></td><th>Email</th><td><%= c.customer_email || '—' %></td></tr>
+            <tr><th>City</th><td><%= c.city %></td><th>Budget</th><td><%= c.budget_range %></td></tr>
+            <tr><th>Timeline</th><td colspan="3"><%= c.timeline || '—' %></td></tr>
+            <tr><th>Decision needed</th><td colspan="3"><%= c.decision_needed %></td></tr>
+            <tr><th>Priorities / must-haves</th><td colspan="3"><%= c.priorities || '—' %></td></tr>
+            <tr><th>Other notes from customer</th><td colspan="3"><%= c.notes_from_customer || '—' %></td></tr>
+            <tr><th>Terms accepted</th><td colspan="3"><%= c.agreed_terms_at || 'Not yet' %></td></tr>
+          </table>
+        </div>
+
+        <!-- DECISION PROFILE (advisor-completed, condensed) -->
+        <div class="card" id="profile" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Decision Profile <span class="muted small">(advisor assessment — not shown to customer)</span></h2>
+          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/decision-profile">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="row-2">
+              <div>
+                <label>Customer decision type</label>
+                <select name="decision_type">
+                  <% ['Price Optimizer','Value Seeker','Design Seeker','Quality Seeker','Customization Seeker','Convenience Seeker','Speed Seeker','Control Seeker','Uncertain / Needs Guidance','Mixed'].forEach(t => { %>
+                    <option <%= c.decision_type===t?'selected':'' %>><%= t %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div>
+                <label>Risk tolerance</label>
+                <select name="risk_tolerance">
+                  <% ['Very low — wants maximum certainty','Low','Moderate','Comfortable with some uncertainty','High'].forEach(t => { %>
+                    <option <%= c.risk_tolerance===t?'selected':'' %>><%= t %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label>Non-negotiables</label>
+              <textarea name="non_negotiables"><%= c.non_negotiables || '' %></textarea>
+            </div>
+            <div>
+              <label>Decision hypothesis (preliminary — to be tested against evidence)</label>
+              <textarea name="advisor_hypothesis" placeholder="Based on what we currently know, the customer appears to need…"><%= c.advisor_hypothesis || '' %></textarea>
+            </div>
+            <button class="btn small outline" type="submit">Save profile</button>
+          </form>
+        </div>
+
+        <!-- QUOTES -->
+        <div class="card" id="quotes" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Quotations (<%= quoteDocs.length %>)</h2>
+          <% if (quoteDocs.length === 0) { %><p class="muted small">None uploaded yet.</p><% } %>
+          <ul class="list-plain">
+            <% quoteDocs.forEach(q => { %>
+              <li class="file-row">
+                <span><strong><%= q.company_name %></strong> — <span class="muted small"><%= q.original_filename %></span></span>
+                <a class="btn small outline" href="/advisor/cases/<%= c.id %>/quotes/<%= q.id %>/file" target="_blank">View</a>
+              </li>
+            <% }) %>
+          </ul>
+          <% const supportingDocs = quotes.filter(q => q.doc_type === 'SUPPORTING'); %>
+          <% if (supportingDocs.length) { %>
+            <h3 style="font-size:.9rem;color:var(--brand);margin-bottom:6px">Supporting documents (<%= supportingDocs.length %>) <span class="muted small">— reference only, excluded from comparison</span></h3>
+            <ul class="list-plain">
+              <% supportingDocs.forEach(q => { %>
+                <li class="file-row">
+                  <span class="muted small">[<%= q.doc_subtype || 'Supporting' %>]</span> <span class="muted small"><%= q.original_filename %></span>
+                  <a class="btn small outline" href="/advisor/cases/<%= c.id %>/quotes/<%= q.id %>/file" target="_blank">View</a>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+        </div>
+
+        <!-- NOTES -->
+        <div class="card" id="notes" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Notes &amp; Evidence Log</h2>
+          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/notes">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="row-2">
+              <div>
+                <label>Quote / company</label>
+                <select name="quote_id">
+                  <option value="">(general note)</option>
+                  <% quotes.forEach(q => { %><option value="<%= q.id %>"><%= q.company_name %></option><% }) %>
+                </select>
+              </div>
+              <div>
+                <label>Field</label>
+                <input type="text" name="field_label" placeholder="e.g. Carcass material" required>
+              </div>
+            </div>
+            <div>
+              <label>Value / finding</label>
+              <textarea name="value" required></textarea>
+            </div>
+            <div>
+              <label>Evidence label</label>
+              <select name="evidence_label" required>
+                <% EVIDENCE_LABELS.forEach(l => { %><option value="<%= l %>"><%= l.replace('_',' ') %></option><% }) %>
+              </select>
+            </div>
+            <button class="btn small outline" type="submit">Add note</button>
+          </form>
+          <table style="margin-top:14px">
+            <tr><th>Company</th><th>Field</th><th>Value</th><th>Evidence</th><th></th></tr>
+            <% notes.forEach(n => { const q = quotes.find(x=>x.id===n.quote_id); %>
+              <tr>
+                <td class="small"><%= q ? q.company_name : '—' %></td>
+                <td class="small"><%= n.field_label %></td>
+                <td class="small"><%= n.value %></td>
+                <td><span class="badge <%= n.evidence_label %>"><%= n.evidence_label.replace('_',' ') %></span></td>
+                <td><form method="post" action="/advisor/cases/<%= c.id %>/notes/<%= n.id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn small danger" type="submit">×</button></form></td>
+              </tr>
+            <% }) %>
+          </table>
+        </div>
+
+        <% if (c.service === 'VERIFY') { %>
+        <!-- INVESTIGATION -->
+        <div class="card" id="investigation" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Company Investigation Calls (VERIFY)</h2>
+          <p class="small muted">Based on the Company Investigation Card / Call Sheet: record what the company confirmed, per company, with an evidence label.
+            Quick topics: scope, materials, hardware, customization, manufacturing, timeline, exclusions, additional costs, payment, warranty, after-sales.</p>
+          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/investigation">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="row-2">
+              <div>
+                <label>Company</label>
+                <select name="quote_id" required>
+                  <% quoteDocs.forEach(q => { %><option value="<%= q.id %>"><%= q.company_name %></option><% }) %>
+                </select>
+              </div>
+              <div>
+                <label>Evidence label</label>
+                <select name="evidence_label" required>
+                  <% EVIDENCE_LABELS.forEach(l => { %><option value="<%= l %>"><%= l.replace('_',' ') %></option><% }) %>
+                </select>
+              </div>
+            </div>
+            <div class="row-2">
+              <div><label>Contact name</label><input type="text" name="contact_name" placeholder="e.g. Ramesh, Sales Manager"></div>
+              <div><label>Contact detail</label><input type="text" name="contact_detail" placeholder="phone / designation / channel"></div>
+            </div>
+            <div>
+              <label>Question asked</label>
+              <input type="text" name="question" required placeholder="e.g. What exact material is included for the kitchen carcass?">
+            </div>
+            <div>
+              <label>Company's answer / what was confirmed</label>
+              <textarea name="answer" required></textarea>
+            </div>
+            <div>
+              <label>Follow-up / still needs clarification</label>
+              <input type="text" name="follow_up" placeholder="e.g. Awaiting written confirmation of hardware brand">
+            </div>
+            <button class="btn small outline" type="submit">Log call finding</button>
+          </form>
+          <table style="margin-top:14px">
+            <tr><th>Company</th><th>Contact</th><th>Question</th><th>Answer</th><th>Evidence</th><th>Follow-up</th><th></th></tr>
+            <% calls.forEach(call => { const q = quotes.find(x=>x.id===call.quote_id); %>
+              <tr>
+                <td class="small"><%= q ? q.company_name : '—' %></td>
+                <td class="small"><%= call.contact_name || '—' %><br><span class="muted"><%= call.contact_detail || '' %></span></td>
+                <td class="small"><%= call.question %></td>
+                <td class="small"><%= call.answer %></td>
+                <td><span class="badge <%= call.evidence_label %>"><%= call.evidence_label.replace('_',' ') %></span></td>
+                <td class="small"><%= call.follow_up || '—' %></td>
+                <td><form method="post" action="/advisor/cases/<%= c.id %>/investigation/<%= call.id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn small danger" type="submit">×</button></form></td>
+              </tr>
+            <% }) %>
+          </table>
+        </div>
+        <% } %>
+
+        <!-- COMPARISON -->
+        <div class="card" id="comparison" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Apples-to-Apples Comparison</h2>
+          <p class="small muted">A lower quote is not automatically cheaper — compare what the customer receives, not just what they pay.</p>
+          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/comparison">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="row-2">
+              <div><label>Attribute</label><input type="text" name="attribute" required placeholder="e.g. Carcass material"></div>
+              <div>
+                <label>Status</label>
+                <select name="status">
+                  <option value="COMPARABLE">Comparable</option>
+                  <option value="NOT_YET_COMPARABLE">Not yet comparable</option>
+                  <option value="NEEDS_CLARIFICATION">Needs clarification</option>
+                  <option value="MISSING">Missing</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2">
+              <% quoteDocs.forEach(q => { %>
+                <div><label><%= q.company_name %></label><input type="text" name="quote_value_<%= q.id %>" placeholder="value for this company"></div>
+              <% }) %>
+            </div>
+            <button class="btn small outline" type="submit">Add row</button>
+          </form>
+          <table style="margin-top:14px">
+            <tr><th>Attribute</th><% quoteDocs.forEach(q => { %><th><%= q.company_name %></th><% }) %><th>Status</th><th></th></tr>
+            <% comparisonRows.forEach(r => { const vals = JSON.parse(r.quote_values || '{}'); %>
+              <tr>
+                <td class="small"><%= r.attribute %></td>
+                <% quoteDocs.forEach(q => { %><td class="small"><%= vals[q.id] || '—' %></td><% }) %>
+                <td class="small"><%= r.status.replace('_',' ') %></td>
+                <td><form method="post" action="/advisor/cases/<%= c.id %>/comparison/<%= r.id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn small danger" type="submit">×</button></form></td>
+              </tr>
+            <% }) %>
+          </table>
+        </div>
+
+        <!-- RECOMMENDATION -->
+        <div class="card" id="recommendation" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Recommendation</h2>
+          <p class="small muted">Recommend for the customer, not for the company. There is no universal "best" — only a better or worse fit for this homeowner.
+            Customer's stated priorities: <strong><%= c.priorities || 'not recorded' %></strong></p>
+
+          <% if (recommendation && recommendation.approved_at) { %>
+            <div class="notice">✅ Approved by advisor on <%= recommendation.approved_at %>. Any edit below will require re-approval.</div>
+          <% } %>
+
+          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/recommendation">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="row-2">
+              <div>
+                <label>Recommended option</label>
+                <select name="recommended_option">
+                  <option value="">— none yet / no clear recommendation —</option>
+                  <% quoteDocs.forEach(q => { %><option <%= recommendation && recommendation.recommended_option===q.company_name?'selected':'' %>><%= q.company_name %></option><% }) %>
+                </select>
+              </div>
+              <div>
+                <label>Confidence</label>
+                <select name="confidence">
+                  <% ['High','Medium','Low'].forEach(t => { %><option <%= recommendation && recommendation.confidence===t?'selected':'' %>><%= t %></option><% }) %>
+                </select>
+              </div>
+            </div>
+            <div><label>Reasoning (why this fits this customer)</label><textarea name="reasoning"><%= recommendation ? recommendation.reasoning : '' %></textarea></div>
+            <div><label>Main trade-off</label><textarea name="trade_offs"><%= recommendation ? recommendation.trade_offs : '' %></textarea></div>
+            <div><label>Key risks</label><textarea name="risks" placeholder="e.g. Hardware brand not yet confirmed in writing"><%= recommendation ? recommendation.risks : '' %></textarea></div>
+            <div><label>Why not the alternative(s)</label><textarea name="alternative_note" placeholder="e.g. Company B was cheaper but could not confirm hardware brand and excluded electrical work"><%= recommendation ? recommendation.alternative_note : '' %></textarea></div>
+            <div><label>Estimated cost if the customer proceeds (decision cost)</label><textarea name="decision_cost_note" placeholder="e.g. Quoted ₹8.5L + likely electrical/false-ceiling add-on ~₹40-60k = est. ₹8.9-9.1L all-in"><%= recommendation ? recommendation.decision_cost_note : '' %></textarea></div>
+            <div><label>Open / before-signing questions</label><textarea name="open_questions"><%= recommendation ? recommendation.open_questions : '' %></textarea></div>
+            <div class="card" style="background:#f3f2ee">
+              <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400">
+                <input type="checkbox" name="conflict_confirmed" value="1" style="width:auto;margin-top:3px" <%= recommendation && recommendation.conflict_confirmed ? 'checked' : '' %>>
+                <span class="small">Recommendation Integrity Check: I confirm this recommendation would be the same if the recommended company paid us nothing
+                  (we have no referral/commission relationships in V1). Price alone and company reputation alone did not determine this recommendation.</span>
+              </label>
+            </div>
+            <button class="btn small outline" type="submit">Save draft</button>
+          </form>
+          <% if (recommendation && recommendation.recommended_option && recommendation.conflict_confirmed && !recommendation.approved_at) { %>
+            <form method="post" action="/advisor/cases/<%= c.id %>/recommendation/approve" style="margin-top:10px" onsubmit="return confirm('Approve this as the final recommendation? It will then be eligible to appear in the customer report.')">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn" type="submit">Approve as final recommendation</button>
+            </form>
+          <% } else if (!recommendation || !recommendation.recommended_option || !recommendation.conflict_confirmed) { %>
+            <p class="small muted" style="margin-top:10px">Save a recommended option and confirm the conflict check above before it can be approved.</p>
+          <% } %>
+        </div>
+
+        <!-- REPORT -->
+        <div class="card" id="report" style="margin-bottom:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Customer Report</h2>
+          <% if (!recommendation || !recommendation.approved_at) { %>
+            <div class="notice">The recommendation must be approved (see Recommendation section above) before this report can be marked sent. AI never approves or sends anything — only the advisor can.</div>
+          <% } %>
+          <% if (reportStale) { %>
+            <div class="notice" style="background:#fdecea;border-color:#f5c2c0">⚠️ Report is out of date — the recommendation has changed since this report was generated. Regenerate before sending.</div>
+          <% } %>
+          <form method="post" action="/advisor/cases/<%= c.id %>/report/generate" style="margin-bottom:10px">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn small outline" type="submit">Generate / regenerate draft from case data</button>
+          </form>
+          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/report">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <textarea name="content_md" style="min-height:320px;font-family:monospace;font-size:.85rem"><%= report ? report.content_md : '' %></textarea>
+            <div class="flex-between">
+              <button class="btn small outline" type="submit">Save draft</button>
+              <span>
+                <a class="btn small outline" href="/advisor/cases/<%= c.id %>/report/download">Download .md</a>
+                <a class="btn small outline" href="/advisor/cases/<%= c.id %>/report/download-pdf">Download .pdf</a>
+              </span>
+            </div>
+          </form>
+          <% if (report) { %>
+            <form method="post" action="/advisor/cases/<%= c.id %>/report/send" style="margin-top:10px" onsubmit="return confirm('Mark this report as sent and close the case as Delivered?')">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn" type="submit" <%= !recommendation || !recommendation.approved_at || reportStale ? 'disabled' : '' %>>Mark sent to customer (→ Delivered)</button>
+            </form>
+            <p class="small muted">Report status: <%= report.status %></p>
+          <% } %>
+        </div>
+
+        <!-- AI ASSIST -->
+        <div class="card" id="ai" style="margin-bottom:40px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">AI-Assist (internal only — never shown to the customer)</h2>
+          <p class="small muted">AI extracts, normalizes, drafts and challenges. The advisor investigates, judges, and approves. Nothing here is customer-ready until reviewed.</p>
+
+          <% if (ai) { %>
+            <div class="card" style="background:#f3f2ee;margin-bottom:16px">
+              <p class="small muted" style="margin-top:0">Last AI result (<%= ai.type %>, <%= ai.at %>) — DRAFT / INTERNAL, review before using:</p>
+              <pre style="white-space:pre-wrap;font-size:.82rem"><%= ai.output %></pre>
+            </div>
+          <% } %>
+
+          <% prompts.extractionByQuote.forEach((item, i) => { %>
+            <details style="margin-bottom:10px">
+              <summary class="small" style="cursor:pointer">1. Extraction prompt — <%= item.quote.company_name %></summary>
+              <textarea id="extract-<%= i %>" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= item.prompt %></textarea>
+              <button type="button" class="btn small outline" onclick="copyPrompt('extract-<%= i %>', this)">Copy prompt</button>
+              <% if (aiEnabled) { %>
+                <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="type" value="extraction-<%= item.quote.company_name %>">
+                  <input type="hidden" name="prompt" value="<%= item.prompt.replace(/"/g,'&quot;') %>">
+                  <button class="btn small" type="submit">Run with Claude</button>
+                </form>
+              <% } %>
+            </details>
+          <% }) %>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">2. Normalization</summary>
+            <textarea id="norm" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.normalization %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('norm', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="normalization">
+                <input type="hidden" name="prompt" value="<%= prompts.normalization.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">3. Missing information / gaps</summary>
+            <textarea id="gaps" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.gaps %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('gaps', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="gaps">
+                <input type="hidden" name="prompt" value="<%= prompts.gaps.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">4. Investigation question generator</summary>
+            <textarea id="invq" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.investigationQuestions %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('invq', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="investigation-questions">
+                <input type="hidden" name="prompt" value="<%= prompts.investigationQuestions.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">5. Evidence structuring (from investigation call notes)</summary>
+            <textarea id="evid" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.evidenceStructuring %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('evid', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="evidence-structuring">
+                <input type="hidden" name="prompt" value="<%= prompts.evidenceStructuring.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">6. Comparison</summary>
+            <textarea id="cmp" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.comparisonDraft %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('cmp', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="comparison-draft">
+                <input type="hidden" name="prompt" value="<%= prompts.comparisonDraft.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">7. Contradiction check</summary>
+            <textarea id="contra" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.contradictionCheck %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('contra', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="contradiction-check">
+                <input type="hidden" name="prompt" value="<%= prompts.contradictionCheck.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">8. Estimated decision cost</summary>
+            <textarea id="dcost" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.decisionCost %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('dcost', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="decision-cost">
+                <input type="hidden" name="prompt" value="<%= prompts.decisionCost.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">9. Recommendation challenge</summary>
+            <textarea id="chal" readonly style="min-height:140px;font-family:monospace;font-size:.8rem"><%= prompts.challenge %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('chal', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="challenge">
+                <input type="hidden" name="prompt" value="<%= prompts.challenge.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <details style="margin-bottom:10px">
+            <summary class="small" style="cursor:pointer">10. Report drafting</summary>
+            <textarea id="rep" readonly style="min-height:180px;font-family:monospace;font-size:.8rem"><%= prompts.reportDraft %></textarea>
+            <button type="button" class="btn small outline" onclick="copyPrompt('rep', this)">Copy prompt</button>
+            <% if (aiEnabled) { %>
+              <form method="post" action="/advisor/cases/<%= c.id %>/ai/run" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="type" value="report-draft">
+                <input type="hidden" name="prompt" value="<%= prompts.reportDraft.replace(/"/g,'&quot;') %>">
+                <button class="btn small" type="submit">Run with Claude</button>
+              </form>
+            <% } %>
+          </details>
+
+          <% if (!aiEnabled) { %>
+            <p class="small muted">Direct "Run with Claude" is off because no ANTHROPIC_API_KEY is set in .env — copy the prompt into Claude manually instead.</p>
+          <% } %>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="position:sticky;top:20px">
+          <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Case checklist</h2>
+          <ul class="small" style="padding-left:18px;line-height:1.9">
+            <li><%= quoteDocs.length > 0 ? '✅' : '⬜' %> Quotations uploaded (<%= quoteDocs.length %>)</li>
+            <li><%= c.decision_type ? '✅' : '⬜' %> Decision profile completed</li>
+            <li><%= notes.length > 0 ? '✅' : '⬜' %> Evidence notes recorded (<%= notes.length %>)</li>
+            <% if (c.service === 'VERIFY') { %><li><%= calls.length > 0 ? '✅' : '⬜' %> Investigation calls logged (<%= calls.length %>)</li><% } %>
+            <li><%= comparisonRows.length > 0 ? '✅' : '⬜' %> Comparison built (<%= comparisonRows.length %> rows)</li>
+            <li><%= recommendation ? '✅' : '⬜' %> Recommendation drafted</li>
+            <li><%= recommendation && recommendation.conflict_confirmed ? '✅' : '⬜' %> Conflict check confirmed</li>
+            <li><%= recommendation && recommendation.approved_at ? '✅' : '⬜' %> Recommendation approved by advisor</li>
+            <li><%= report && report.status==='SENT' ? '✅' : '⬜' %> Report sent</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="/public/js/advisor.js"></script>
+</body>
+</html>

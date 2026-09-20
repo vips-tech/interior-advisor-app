@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head', { title: 'Cases — Advisor workspace' }) %></head>
+<body>
+<div class="topbar">
+  <div class="wrap flex-between">
+    <a class="brand" href="/advisor/cases">Interior Decision Advisor — Advisor Workspace</a>
+    <form method="post" action="/advisor/logout"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn small outline" type="submit">Log out</button></form>
+  </div>
+</div>
+<main>
+  <div class="wrap">
+    <h1 style="color:var(--brand);font-size:1.3rem">Cases</h1>
+    <div class="tag-row" style="margin-bottom:18px">
+      <a class="step <%= !statusFilter ? 'active' : '' %>" href="/advisor/cases">All (<%= cases.length %>)</a>
+      <% ['INTAKE_PENDING','PAYMENT_PENDING','PAYMENT_SUBMITTED','PAID','IN_REVIEW','INVESTIGATING','READY','DELIVERED'].forEach(s => {
+        const cnt = counts.find(x => x.status === s);
+      %>
+        <% if (cnt) { %><a class="step <%= statusFilter===s?'active':'' %>" href="/advisor/cases?status=<%= s %>"><%= s %> (<%= cnt.n %>)</a><% } %>
+      <% }) %>
+    </div>
+
+    <% if (cases.length === 0) { %>
+      <p class="muted">No cases yet.</p>
+    <% } else { %>
+      <table>
+        <tr><th>Case</th><th>Service</th><th>Customer</th><th>Status</th><th>Payment</th><th>Submitted</th><th></th></tr>
+        <% cases.forEach(c => { %>
+          <tr>
+            <td class="small" style="font-family:monospace"><%= c.id.slice(0,8) %>…</td>
+            <td><%= c.service %> — ₹<%= c.price_inr.toLocaleString('en-IN') %></td>
+            <td><%= c.customer_name || '—' %><br><span class="muted small"><%= c.city || '' %></span></td>
+            <td><span class="case-status"><%= c.status %></span></td>
+            <td class="small">
+              <% if (c.payment_confirmed_at) { %>✅ Confirmed<% } else if (c.payment_reference) { %>
+                Ref: <%= c.payment_reference %>
+                <form method="post" action="/advisor/cases/<%= c.id %>/payment-confirm" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="btn small outline" type="submit">Confirm</button>
+                </form>
+              <% } else { %>—<% } %>
+            </td>
+            <td class="small muted"><%= c.updated_at %></td>
+            <td><a class="btn small" href="/advisor/cases/<%= c.id %>">Open</a></td>
+          </tr>
+        <% }) %>
+      </table>
+    <% } %>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Payment — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:640px">
+    <div class="steps">
+      <span class="step">1. Choose service</span>
+      <span class="step active">2. Pay</span>
+      <span class="step">3. Tell us about your home</span>
+      <span class="step">4. Upload quotes</span>
+      <span class="step">5. Submit</span>
+    </div>
+    <h1 style="font-size:1.4rem;color:var(--brand)"><%= service.label %> — ₹<%= service.price.toLocaleString('en-IN') %></h1>
+    <p class="muted small">Pay using UPI or bank transfer, then enter your reference number below so we can confirm it.
+      We'll begin work once payment is confirmed.</p>
+
+    <div class="upi-box">
+      <div class="small muted">Pay to</div>
+      <div class="upi"><%= upiId %></div>
+      <div class="small muted"><%= payeeName %></div>
+      <% if (businessPhone) { %><div class="small muted">Or call <%= businessPhone %> for bank transfer details</div><% } %>
+    </div>
+
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+    <form class="stack" method="post" action="/case/<%= c.id %>/pay">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label>UPI / bank transaction reference</label>
+        <input type="text" name="payment_reference" required placeholder="e.g. UPI Ref 123456789012" value="<%= c.payment_reference || '' %>">
+      </div>
+      <button class="btn" type="submit">I've paid — continue</button>
+    </form>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

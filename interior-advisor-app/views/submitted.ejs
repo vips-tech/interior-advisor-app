@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Case submitted — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:640px">
+    <h1 style="font-size:1.4rem;color:var(--brand)">Thanks — your case has been submitted</h1>
+    <p class="muted">We've received your <strong><%= service.label %></strong> case and your uploaded quotations.
+      We'll review everything and get back to you within 2–4 business days.</p>
+    <div class="card">
+      <p class="small muted">Your case reference:</p>
+      <p style="font-family:monospace;font-size:.85rem;word-break:break-all"><%= c.id %></p>
+      <p class="small muted">Keep this link if you'd like to check back: <br>
+        <a href="/case/<%= c.id %>/upload"><%= c.id %></a></p>
+    </div>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

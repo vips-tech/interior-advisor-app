@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head', { title: 'Advisor login' }) %></head>
+<body>
+<%- include('../partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:380px">
+    <h1 style="color:var(--brand)">Advisor login</h1>
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+    <form class="stack" method="post" action="/advisor/login">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <label>Email</label>
+        <input type="email" name="email" required autofocus>
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <button class="btn" type="submit">Log in</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

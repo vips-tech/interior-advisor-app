@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Tell us about your home — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:640px">
+    <div class="steps">
+      <span class="step">1. Choose service</span>
+      <span class="step">2. Pay</span>
+      <span class="step active">3. Tell us about your home</span>
+      <span class="step">4. Upload quotes</span>
+      <span class="step">5. Submit</span>
+    </div>
+    <h1 style="font-size:1.4rem;color:var(--brand)">Tell us about your home and priorities</h1>
+    <p class="muted small">This helps us judge which option actually fits you — not just which looks cheapest.</p>
+    <% if (typeof error !== 'undefined' && error) { %><div class="error"><%= error %></div><% } %>
+
+    <form class="stack" method="post" action="/case/<%= c.id %>/intake">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="row-2">
+        <div>
+          <label>Your name *</label>
+          <input type="text" name="customer_name" required value="<%= c.customer_name || '' %>">
+        </div>
+        <div>
+          <label>Phone *</label>
+          <input type="tel" name="customer_phone" required value="<%= c.customer_phone || '' %>">
+        </div>
+      </div>
+      <div class="row-2">
+        <div>
+          <label>Email</label>
+          <input type="email" name="customer_email" value="<%= c.customer_email || '' %>">
+        </div>
+        <div>
+          <label>City *</label>
+          <input type="text" name="city" required value="<%= c.city || '' %>">
+        </div>
+      </div>
+      <div>
+        <label>Budget range *</label>
+        <input type="text" name="budget_range" required placeholder="e.g. ₹8L – ₹12L" value="<%= c.budget_range || '' %>">
+      </div>
+      <div>
+        <label>What decision are you trying to make? *</label>
+        <textarea name="decision_needed" required placeholder="e.g. Deciding between two companies for a 3BHK modular kitchen + wardrobes"><%= c.decision_needed || '' %></textarea>
+      </div>
+      <div>
+        <label>What matters most to you? (must-haves vs nice-to-haves)</label>
+        <textarea name="priorities" placeholder="e.g. Must have: plywood carcass, soft-close hardware. Nice to have: matte finish, faster timeline"><%= c.priorities || '' %></textarea>
+      </div>
+      <div class="row-2">
+        <div>
+          <label>Timeline</label>
+          <input type="text" name="timeline" placeholder="e.g. Want to start in 6 weeks" value="<%= c.timeline || '' %>">
+        </div>
+        <div>
+          <label>Anything else we should know?</label>
+          <input type="text" name="notes_from_customer" value="<%= c.notes_from_customer || '' %>">
+        </div>
+      </div>
+      <button class="btn" type="submit">Continue to upload quotations</button>
+    </form>
+    <p class="small muted" style="margin-top:16px"><%= privacyNotice %></p>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

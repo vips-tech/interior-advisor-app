@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Interior Decision Advisor — Independent interior decision advisory' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap">
+    <div class="hero">
+      <span class="pill">Independent &middot; Not a design, interiors or contracting company</span>
+      <h1>An independent advisor for your interior decisions — not just your quotations.</h1>
+      <p class="lead">Interior companies sell you their solution. We help you decide what's right for you.
+        Quotes from different companies rarely mean the same thing — materials, hardware, exclusions and
+        commercial terms are described differently by each one, so a lower price can just mean something was
+        left out. That's hard to see on your own, and generic AI tools can summarize a quote but can't call a
+        company to confirm what it actually means. We can — and we're not paid by any interior company, so we
+        have no reason to steer you toward one.</p>
+      <p>
+        <a class="btn" href="/start">Start a CHECK or VERIFY</a>
+        <a class="btn outline" href="/talk-to-advisor">Talk to an Advisor</a>
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>Help at different points in your journey</h2>
+      <p class="muted small">CHECK and VERIFY (below) are our two structured, pay-online services — but they're
+        not the whole business. Depending on where you are, we can also help with things like:</p>
+      <ul class="small muted" style="padding-left:18px">
+        <li>Independent decision consultation before you've chosen an interior company</li>
+        <li>Understanding your options and the trade-offs between them</li>
+        <li>Reviewing an important decision or final quotation before you sign</li>
+        <li>Accompanying you to an experience centre/showroom to assess what's being shown against what's quoted</li>
+        <li>Independent decision, design or communication support during the project, where appropriate</li>
+      </ul>
+      <p class="small muted">These aren't self-service products yet — tell us what you're facing and we'll tell
+        you how we can help. <a href="/talk-to-advisor">Talk to an Advisor →</a></p>
+    </div>
+
+    <div class="section">
+      <h2>The two services you can start online today</h2>
+      <div class="grid-2">
+        <div class="card service-card">
+          <span class="pill">CHECK</span>
+          <h3>Quote Check</h3>
+          <div class="price">₹<%= SERVICES.CHECK.price.toLocaleString('en-IN') %></div>
+          <p class="muted"><%= SERVICES.CHECK.blurb %></p>
+          <ul>
+            <li>Up to 3 quotations reviewed and compared</li>
+            <li>Gaps and missing/ambiguous items flagged</li>
+            <li>Written recommendation with trade-offs</li>
+            <li>2–4 business day turnaround</li>
+          </ul>
+          <a class="btn outline" href="/start">Start CHECK</a>
+        </div>
+        <div class="card service-card">
+          <span class="pill">VERIFY</span>
+          <h3>Quote Verify</h3>
+          <div class="price">₹<%= SERVICES.VERIFY.price.toLocaleString('en-IN') %></div>
+          <p class="muted"><%= SERVICES.VERIFY.blurb %></p>
+          <ul>
+            <li>Everything in CHECK</li>
+            <li>We call each company directly — materials, hardware, exclusions, feasibility</li>
+            <li>Clarifications / revised quotes requested where needed</li>
+            <li>2–4 business day turnaround</li>
+          </ul>
+          <a class="btn outline" href="/start">Start VERIFY</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>How it works</h2>
+      <ol class="small muted" style="padding-left:18px">
+        <li>Choose CHECK or VERIFY and complete payment.</li>
+        <li>Tell us about your home, budget and priorities.</li>
+        <li>Upload the quotations you've received.</li>
+        <li>We review (and for VERIFY, independently confirm) what's actually being offered.</li>
+        <li>You get a short, plain-language report and recommendation — the decision stays yours.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <h2>Why not just compare the quotes myself?</h2>
+      <p class="small muted">Interior companies quote in different formats, and cheaper often means something
+        was left out — a material downgrade, an excluded item, a hidden cost. Quotation-comparison tools only
+        compare line-item prices, not real scope or material equivalence. We investigate directly, disclose what
+        we couldn't confirm, and never recommend a provider because they pay us — providers do not pay to be
+        recommended. We're an independent advisor, not an interior contractor, architect, structural engineer,
+        or a replacement for the professional actually executing your project — our role is to help you decide,
+        not to design or build.</p>
+    </div>
+
+    <div class="section" style="text-align:center">
+      <h2>Not sure what kind of help you need?</h2>
+      <p class="muted">Tell us where you are in your interior journey and what decision you're facing.
+        We'll tell you how we can help.</p>
+      <p><a class="btn" href="/talk-to-advisor">Tell Us What You Need</a></p>
+    </div>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

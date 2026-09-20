@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Choose your service — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:640px">
+    <div class="steps">
+      <span class="step active">1. Choose service</span>
+      <span class="step">2. Pay</span>
+      <span class="step">3. Tell us about your home</span>
+      <span class="step">4. Upload quotes</span>
+      <span class="step">5. Submit</span>
+    </div>
+    <h1 style="font-size:1.4rem;color:var(--brand)">Which service do you need?</h1>
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+    <form class="stack" method="post" action="/start">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="grid-2">
+        <label class="card service-card" style="cursor:pointer">
+          <input type="radio" name="service" value="CHECK" style="width:auto;margin-bottom:8px">
+          <h3>CHECK — ₹<%= SERVICES.CHECK.price.toLocaleString('en-IN') %></h3>
+          <p class="muted small"><%= SERVICES.CHECK.blurb %></p>
+        </label>
+        <label class="card service-card" style="cursor:pointer">
+          <input type="radio" name="service" value="VERIFY" style="width:auto;margin-bottom:8px">
+          <h3>VERIFY — ₹<%= SERVICES.VERIFY.price.toLocaleString('en-IN') %></h3>
+          <p class="muted small"><%= SERVICES.VERIFY.blurb %></p>
+        </label>
+      </div>
+      <button class="btn" type="submit">Continue to payment</button>
+    </form>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

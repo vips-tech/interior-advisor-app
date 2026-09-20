@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Terms of Service — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:720px">
+    <h1 style="color:var(--brand)">Terms of Service</h1>
+    <div class="notice"><%= LEGAL_REVIEW_NOTICE %></div>
+    <p class="muted small">Summary of the terms that apply to CHECK and VERIFY services:</p>
+    <ul>
+      <% termsSummaryPoints.forEach(p => { %><li class="small" style="margin-bottom:8px"><%= p %></li><% }) %>
+    </ul>
+    <p class="small muted">See also our <a href="/privacy">Privacy Policy</a> and <a href="/disclaimer">Disclaimer</a>.</p>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Talk to an Advisor — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:640px">
+    <h1 style="font-size:1.4rem;color:var(--brand)">Tell us what you need</h1>
+    <p class="muted small">Not sure whether CHECK, VERIFY, or something else is the right fit? Tell us where
+      you are in your interior journey and what decision you're facing — we'll tell you how we can help.
+      This is just a message to us, not a payment or a commitment.</p>
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+    <form class="stack" method="post" action="/talk-to-advisor">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="row-2">
+        <div>
+          <label>Your name *</label>
+          <input type="text" name="name" required maxlength="200">
+        </div>
+        <div>
+          <label>Phone *</label>
+          <input type="tel" name="phone" required maxlength="30">
+        </div>
+      </div>
+      <div class="row-2">
+        <div>
+          <label>Email</label>
+          <input type="email" name="email" maxlength="200">
+        </div>
+        <div>
+          <label>City</label>
+          <input type="text" name="city" maxlength="100">
+        </div>
+      </div>
+      <div>
+        <label>Where are you in your interior journey?</label>
+        <select name="stage">
+          <% JOURNEY_STAGES.forEach(function(s) { %>
+            <option value="<%= s %>"><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div>
+        <label>What decision or help do you need? *</label>
+        <textarea name="message" required maxlength="2000" rows="4" placeholder="e.g. I have two quotes and can't tell which is fair — or — I'd like someone to come with me to a showroom."></textarea>
+      </div>
+      <button class="btn" type="submit">Send</button>
+    </form>
+    <p class="small muted" style="margin-top:16px">Already have quotations and want a structured comparison?
+      <a href="/start">Start a CHECK or VERIFY case</a> instead.</p>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

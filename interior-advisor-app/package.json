@@ -1,0 +1,28 @@
+{
+  "name": "interior-decision-advisor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interior Decision Advisor - V1 MVP (CHECK / VERIFY case workflow)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/server": "^1.7.0",
+    "@supabase/supabase-js": "^2.116.0",
+    "@vercel/blob": "^2.8.0",
+    "bcryptjs": "^2.4.3",
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "multer": "^2.0.0",
+    "pdfkit": "^0.15.0",
+    "pg": "^8.23.0",
+    "uuid": "^9.0.1"
+  }
+}

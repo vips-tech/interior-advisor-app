@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Disclaimer — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:720px">
+    <h1 style="color:var(--brand)">Disclaimer</h1>
+    <div class="notice"><%= LEGAL_REVIEW_NOTICE %></div>
+    <p class="small"><%= shortDisclaimerCheckout %></p>
+    <h2 style="font-size:1.1rem;color:var(--brand);margin-top:24px">Independence</h2>
+    <p class="small"><%= independenceStatement %></p>
+    <h2 style="font-size:1.1rem;color:var(--brand);margin-top:24px">A note on uncertainty</h2>
+    <p class="small muted">Where we could not confirm something, our report will say so — an item marked "needs clarification" does not mean a
+      company or proposal is deficient, only that we don't yet have enough information for a stronger conclusion. We do not guarantee
+      savings, a particular outcome, or the future performance of any interior company.</p>
+    <p class="small muted">See also our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</p>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>

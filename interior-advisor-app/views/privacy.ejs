@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head', { title: 'Privacy Policy — Interior Decision Advisor' }) %></head>
+<body>
+<%- include('partials/topbar') %>
+<main>
+  <div class="wrap" style="max-width:720px">
+    <h1 style="color:var(--brand)">Privacy Policy</h1>
+    <div class="notice"><%= LEGAL_REVIEW_NOTICE %></div>
+    <p class="small"><%= privacyNotice %></p>
+    <h2 style="font-size:1.1rem;color:var(--brand);margin-top:24px">In more detail</h2>
+    <ul>
+      <% privacySummaryPoints.forEach(p => { %><li class="small" style="margin-bottom:8px"><%= p %></li><% }) %>
+    </ul>
+    <p class="small muted">See also our <a href="/terms">Terms of Service</a> and <a href="/disclaimer">Disclaimer</a>.</p>
+  </div>
+</main>
+<%- include('partials/footer') %>
+</body>
+</html>
