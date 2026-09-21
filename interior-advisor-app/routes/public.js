@@ -1,5 +1,6 @@
 // routes/public.js — customer-facing flow: landing -> choose service -> pay -> intake -> upload -> submit
 const express = require('express');
+const path = require('path');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
@@ -23,25 +24,36 @@ const DOC_SUBTYPES = new Set(['Floor plan', 'Photo', 'Previous communication', '
 const ALLOWED_EXT = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.doc', '.docx'];
 const ALLOWED_MIME = new Set([
   'application/pdf', 'image/jpeg', 'image/png', 'image/webp',
-  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/octet-stream'
 ]);
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 4 * 1024 * 1024,
+    fileSize: 12 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    const ext = file.originalname.toLowerCase().split('.').pop();
-    if (!ALLOWED_EXT.includes(`.${ext}`)) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const normalizedMime = (file.mimetype || '').toLowerCase();
+    const isValidExtension = ALLOWED_EXT.includes(ext);
+    const isValidMime = ALLOWED_MIME.has(normalizedMime);
+
+    if (!isValidExtension) {
       return cb(new Error('Unsupported file type. Please upload a PDF, Word document, or image (jpg/png/webp).'));
     }
-    if (!ALLOWED_MIME.has(file.mimetype)) {
+
+    if (!isValidMime && normalizedMime) {
       return cb(new Error('Unsupported file type. Please upload a PDF, Word document, or image (jpg/png/webp).'));
     }
+
     cb(null, true);
   }
 });
+
+function isSupabaseStorageConfigured() {
+  return Boolean(process.env.SUPABASE_URL && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_PUBLISHABLE_KEY));
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -185,18 +197,29 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
     // multer parses the multipart body first, THEN we can check req.body._csrf —
     // form fields (including _csrf) aren't populated until multer has run.
     upload.single('quote_file')(req, res, async (err) => {
+      const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
+
       if (err) {
-        const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
         return res.render('upload', { c, quotes, error: err.message, locked: false, ...legal });
       }
       if (!req.session || req.body._csrf !== req.session.csrfToken) {
         return res.status(403).send('Invalid or missing CSRF token. Please reload the page and try again.');
       }
+
+      if (!isSupabaseStorageConfigured()) {
+        return res.status(500).render('upload', {
+          c,
+          quotes,
+          error: 'File uploads are not configured on this server. Add SUPABASE_URL and SUPABASE_SECRET_KEY, then create the private bucket "interior-advisor-files" in Supabase.',
+          locked: false,
+          ...legal,
+        });
+      }
+
       const docType = DOC_TYPES.has(req.body.doc_type) ? req.body.doc_type : 'QUOTATION';
       if (docType === 'QUOTATION') {
         const quotationCount = (await db.prepare(`SELECT COUNT(*) n FROM quotes WHERE case_id = ? AND (doc_type = 'QUOTATION' OR doc_type IS NULL)`).get(c.id)).n;
         if (quotationCount >= MAX_QUOTATION_DOCS_PER_CASE) {
-          const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
           return res.render('upload', { c, quotes, error: `You can upload up to ${MAX_QUOTATION_DOCS_PER_CASE} quotation documents per case.`, locked: false, ...legal });
         }
       }
@@ -209,13 +232,17 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
           .storage
           .from('interior-advisor-files')
           .upload(fileName, req.file.buffer, {
-            contentType: req.file.mimetype,
+            contentType: req.file.mimetype || 'application/octet-stream',
             upsert: false,
           });
 
         if (error) {
           console.error('Supabase Storage error:', error);
-          return res.status(500).send('File upload failed');
+          let uploadMessage = 'File upload failed. Please try again with a smaller file or a different document.';
+          if (error.message && /bucket|not found|403|forbidden|invalid/i.test(error.message)) {
+            uploadMessage = 'Supabase storage is not configured correctly. Create the private bucket "interior-advisor-files" and ensure the app has storage write permission.';
+          }
+          return res.status(500).render('upload', { c, quotes, error: uploadMessage, locked: false, ...legal });
         }
 
         console.log('Uploaded:', data.path);
@@ -223,7 +250,7 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
         await db.prepare(`
           INSERT INTO quotes (case_id, company_name, original_filename, stored_filename, file_type, doc_type, doc_subtype)
           VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).run(c.id, companyName, req.file.originalname.slice(0, 255), data.path, req.file.mimetype, docType, docSubtype);
+        `).run(c.id, companyName, req.file.originalname.slice(0, 255), data.path, req.file.mimetype || 'application/octet-stream', docType, docSubtype);
       }
       res.redirect(`/case/${c.id}/upload`);
     });
