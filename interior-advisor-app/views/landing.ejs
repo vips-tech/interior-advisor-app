@@ -6,33 +6,35 @@
     <div class="landing-header-inner">
       <div class="landing-brand" aria-label="Interior Decision Advisor home">
         <span class="landing-brand-mark" aria-hidden="true"></span>
-        <div class="landing-brand-copy">
-          <span class="landing-brand-name">Interior Decision Advisor</span>
-          <span class="landing-brand-sub">Interior decision advisory</span>
-        </div>
+        <span class="landing-brand-name">Interior Decision Advisor</span>
       </div>
 
-      <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
-        <span class="menu-lines" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
-        </span>
-        <span class="menu-label">Menu</span>
-      </button>
+      <div class="landing-header-right">
+        <span class="landing-tagline">Your home. Your money. Your decision.</span>
+
+        <input type="checkbox" id="landingMenuToggle" class="landing-menu-checkbox" aria-label="Toggle navigation menu">
+        <label class="landing-menu-toggle" for="landingMenuToggle" aria-label="Open navigation menu" aria-expanded="false">
+          <span class="menu-lines" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span class="menu-label">Menu</span>
+        </label>
+      </div>
+
+      <nav class="landing-menu" id="landingMenu" aria-label="Main navigation">
+        <div class="landing-menu-inner">
+          <a href="#how-it-works">How it works</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#about">About</a>
+          <a href="#faq">FAQ</a>
+          <a href="/advisor/cases">Dashboard</a>
+        </div>
+        <a class="landing-cta" href="/start">Start Your Check</a>
+      </nav>
     </div>
   </header>
-
-  <nav class="landing-menu" id="landingMenu" aria-label="Main navigation">
-    <div class="landing-menu-inner">
-      <a href="#how-it-works">How it works</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#about">About</a>
-      <a href="#faq">FAQ</a>
-      <a href="/advisor/cases">Dashboard</a>
-    </div>
-    <a class="landing-cta" href="/start">Start Your Check</a>
-  </nav>
 
 <main>
   <div class="wrap">
@@ -163,16 +165,29 @@
 <%- include('partials/footer') %>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const toggle = document.querySelector('.landing-menu-toggle');
+  function toggleLandingMenu(button) {
     const menu = document.getElementById('landingMenu');
+    if (!menu) return;
 
-    if (!toggle || !menu) return;
+    const isOpen = menu.classList.contains('open');
+    const nextState = !isOpen;
 
-    toggle.addEventListener('click', function () {
-      const isOpen = menu.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', String(isOpen));
-    });
+    menu.classList.toggle('open', nextState);
+    button.setAttribute('aria-expanded', String(nextState));
+  }
+
+  document.addEventListener('click', function (event) {
+    const button = document.querySelector('.landing-menu-toggle');
+    const menu = document.getElementById('landingMenu');
+    if (!button || !menu) return;
+
+    const clickedInsideButton = button.contains(event.target);
+    const clickedInsideMenu = menu.contains(event.target);
+
+    if (!clickedInsideButton && !clickedInsideMenu) {
+      menu.classList.remove('open');
+      button.setAttribute('aria-expanded', 'false');
+    }
   });
 </script>
 </body>
