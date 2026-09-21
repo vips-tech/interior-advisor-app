@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const db = require('./db');
 const pgSession = require('connect-pg-simple')(session);
-const { pool, useSqlite } = require('./db');
+const { pool } = require('./db');
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -47,13 +47,11 @@ if (!process.env.SESSION_SECRET) {
   console.warn('SESSION_SECRET is missing. Using a local development fallback for Express sessions.');
 }
 
-const sessionStore = useSqlite
-  ? new session.MemoryStore()
-  : new pgSession({
-      pool: pool,
-      tableName: 'user_sessions',
-      createTableIfMissing: true
-    });
+const sessionStore = new pgSession({
+  pool: pool,
+  tableName: 'user_sessions',
+  createTableIfMissing: true
+});
 
 app.use(
   session({
