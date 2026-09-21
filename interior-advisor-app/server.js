@@ -36,9 +36,15 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // uploaded quote files are served only via an authenticated advisor route (see routes/advisor.js),
 // never directly as static files, so customer-uploaded documents aren't guessable/public.
 
+const sessionSecret = process.env.SESSION_SECRET || 'dev-local-session-secret-change-me';
+
 if (!process.env.SESSION_SECRET && isProd) {
   console.error('SESSION_SECRET is not set — refusing to start in production with the default secret.');
   process.exit(1);
+}
+
+if (!process.env.SESSION_SECRET) {
+  console.warn('SESSION_SECRET is missing. Using a local development fallback for Express sessions.');
 }
 
 app.use(
@@ -49,7 +55,7 @@ app.use(
       createTableIfMissing: true
     }),
 
-    secret: process.env.SESSION_SECRET,
+    secret: sessionSecret,
 
     resave: false,
 
