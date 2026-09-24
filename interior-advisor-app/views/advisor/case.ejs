@@ -204,38 +204,72 @@
         <div class="card" id="comparison" style="margin-bottom:20px">
           <h2 style="font-size:1rem;color:var(--brand);margin-top:0">Apples-to-Apples Comparison</h2>
           <p class="small muted">A lower quote is not automatically cheaper — compare what the customer receives, not just what they pay.</p>
-          <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/comparison">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <div class="row-2">
-              <div><label>Attribute</label><input type="text" name="attribute" required placeholder="e.g. Carcass material"></div>
-              <div>
-                <label>Status</label>
-                <select name="status">
-                  <option value="COMPARABLE">Comparable</option>
-                  <option value="NOT_YET_COMPARABLE">Not yet comparable</option>
-                  <option value="NEEDS_CLARIFICATION">Needs clarification</option>
-                  <option value="MISSING">Missing</option>
-                </select>
+
+          <% if (quoteDocs.length > 0) { %>
+            <form class="stack" method="post" action="/advisor/cases/<%= c.id %>/comparison">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <div class="row-2">
+                <div>
+                  <label>Attribute</label>
+                  <input type="text" name="attribute" required placeholder="e.g. Carcass material">
+                </div>
+                <div>
+                  <label>Status</label>
+                  <select name="status">
+                    <option value="COMPARABLE">Comparable</option>
+                    <option value="NOT_YET_COMPARABLE">Not yet comparable</option>
+                    <option value="NEEDS_CLARIFICATION">Needs clarification</option>
+                    <option value="MISSING">Missing</option>
+                  </select>
+                </div>
               </div>
+              <div class="row-2">
+                <% quoteDocs.forEach(q => { %>
+                  <div>
+                    <label><%= q.company_name %></label>
+                    <input type="text" name="quote_value_<%= q.id %>" placeholder="value for this company">
+                  </div>
+                <% }) %>
+              </div>
+              <button class="btn small outline" type="submit">Add comparison row</button>
+            </form>
+          <% } else { %>
+            <div class="notice">Upload at least one quotation before building the comparison table.</div>
+          <% } %>
+
+          <% if (comparisonRows.length > 0) { %>
+            <div class="comparison-table-wrap" style="margin-top:18px">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th class="sticky-col">Attribute</th>
+                    <% quoteDocs.forEach(q => { %><th><%= q.company_name %></th><% }) %>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% comparisonRows.forEach(r => { const vals = JSON.parse(r.quote_values || '{}'); %>
+                    <tr>
+                      <td class="sticky-col attribute-cell"><strong><%= r.attribute %></strong></td>
+                      <% quoteDocs.forEach(q => { %>
+                        <td class="value-cell"><%= vals[q.id] || '—' %></td>
+                      <% }) %>
+                      <td><span class="comparison-status <%= r.status %>"><%= r.status.replace('_',' ') %></span></td>
+                      <td>
+                        <form method="post" action="/advisor/cases/<%= c.id %>/comparison/<%= r.id %>/delete">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                          <button class="btn small danger" type="submit">Remove</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
             </div>
-            <div class="row-2">
-              <% quoteDocs.forEach(q => { %>
-                <div><label><%= q.company_name %></label><input type="text" name="quote_value_<%= q.id %>" placeholder="value for this company"></div>
-              <% }) %>
-            </div>
-            <button class="btn small outline" type="submit">Add row</button>
-          </form>
-          <table style="margin-top:14px">
-            <tr><th>Attribute</th><% quoteDocs.forEach(q => { %><th><%= q.company_name %></th><% }) %><th>Status</th><th></th></tr>
-            <% comparisonRows.forEach(r => { const vals = JSON.parse(r.quote_values || '{}'); %>
-              <tr>
-                <td class="small"><%= r.attribute %></td>
-                <% quoteDocs.forEach(q => { %><td class="small"><%= vals[q.id] || '—' %></td><% }) %>
-                <td class="small"><%= r.status.replace('_',' ') %></td>
-                <td><form method="post" action="/advisor/cases/<%= c.id %>/comparison/<%= r.id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn small danger" type="submit">×</button></form></td>
-              </tr>
-            <% }) %>
-          </table>
+          <% } else if (quoteDocs.length > 0) { %>
+            <div class="notice" style="margin-top:18px">No comparison rows yet. Add the first attribute to begin the quote review.</div>
+          <% } %>
         </div>
 
         <!-- RECOMMENDATION -->

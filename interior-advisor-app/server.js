@@ -9,6 +9,7 @@ const pgSession = require('connect-pg-simple')(session);
 const { pool } = require('./db');
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
+const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
 
 if (isProd) app.set('trust proxy', 1); // needed for secure cookies behind a reverse proxy
 
@@ -46,11 +47,17 @@ if (!process.env.SESSION_SECRET) {
   console.warn('SESSION_SECRET is missing. Using a local development fallback for Express sessions.');
 }
 
-const sessionStore = new pgSession({
-  pool: pool,
-  tableName: 'user_sessions',
-  createTableIfMissing: true
-});
+const sessionStore = hasDatabaseUrl
+  ? new pgSession({
+      pool: pool,
+      tableName: 'user_sessions',
+      createTableIfMissing: true
+    })
+  : new session.MemoryStore();
+
+if (!hasDatabaseUrl) {
+  console.warn('Using in-memory session storage because DATABASE_URL is not configured.');
+}
 
 app.use(
   session({

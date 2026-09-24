@@ -16,8 +16,8 @@ const SERVICES = {
 // read-only — the advisor is (or may already be) working on it, so allowing further
 // silent edits from the customer side could invalidate work in progress.
 const CUSTOMER_EDITABLE_STATUSES = new Set(['INTAKE_PENDING', 'PAYMENT_PENDING', 'PAYMENT_SUBMITTED']);
-const MAX_QUOTES_PER_CASE = 6; // overall documents (quotations + supporting) per case
-const MAX_QUOTATION_DOCS_PER_CASE = 3; // quotation documents specifically, separate from supporting docs
+const MAX_QUOTES_PER_CASE = 12; // overall documents (quotations + supporting) per case
+const MAX_QUOTATION_DOCS_PER_CASE = 6; // quotation documents specifically, separate from supporting docs
 const DOC_TYPES = new Set(['QUOTATION', 'SUPPORTING']);
 const DOC_SUBTYPES = new Set(['Floor plan', 'Photo', 'Previous communication', 'Reference design', 'Other']);
 
@@ -114,7 +114,15 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
       c, service: SERVICES[c.service],
       upiId: process.env.UPI_ID || 'interioradvisor@upi',
       payeeName: process.env.PAYEE_NAME || 'Interior Decision Advisor',
-      businessPhone: process.env.BUSINESS_PHONE || '',
+      businessPhone: process.env.BUSINESS_PHONE || '+91 98765 43210',
+      businessEmail: process.env.BUSINESS_EMAIL || 'hello@interiordecisionadvisor.in',
+      businessWhatsapp: process.env.BUSINESS_WHATSAPP || '+91 98765 43210',
+      supportedMethods: [
+        'UPI (preferred)',
+        'Bank transfer',
+        'Phone/WhatsApp confirmation',
+        'Cash/cheque in person'
+      ],
       error,
     });
   }

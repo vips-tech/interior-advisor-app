@@ -5,7 +5,8 @@
 <%- include('../partials/topbar') %>
 <main>
   <div class="wrap" style="max-width:380px">
-    <h1 style="color:var(--brand)">Advisor login</h1>
+    <h1 style="color:var(--brand)">Internal Console</h1>
+    <p class="small muted" style="margin-top:-8px;margin-bottom:16px">Restricted advisor access</p>
     <% if (error) { %><div class="error"><%= error %></div><% } %>
     <form class="stack" method="post" action="/advisor/login">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -17,7 +18,7 @@
         <label>Password</label>
         <input type="password" name="password" required>
       </div>
-      <button class="btn" type="submit">Log in</button>
+      <button class="btn" type="submit">Log in to Internal Console</button>
     </form>
   </div>
 </main>

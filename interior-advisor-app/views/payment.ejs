@@ -4,34 +4,63 @@
 <body>
 <%- include('partials/topbar') %>
 <main>
-  <div class="wrap" style="max-width:640px">
-    <div class="steps">
-      <span class="step">1. Choose service</span>
-      <span class="step active">2. Pay</span>
-      <span class="step">3. Tell us about your home</span>
-      <span class="step">4. Upload quotes</span>
-      <span class="step">5. Submit</span>
-    </div>
-    <h1 style="font-size:1.4rem;color:var(--brand)"><%= service.label %> — ₹<%= service.price.toLocaleString('en-IN') %></h1>
-    <p class="muted small">Pay using UPI or bank transfer, then enter your reference number below so we can confirm it.
-      We'll begin work once payment is confirmed.</p>
+  <div class="wrap page-shell">
+    <aside class="sidebar-panel">
+      <div class="sidebar-header">Flow</div>
+      <nav class="side-menu">
+        <a href="/">Home</a>
+        <a href="/start">Choose service</a>
+        <a class="active" href="/case/<%= c.id %>/pay">Payment</a>
+        <a href="/case/<%= c.id %>/intake">Home details</a>
+        <a href="/case/<%= c.id %>/upload">Upload quotes</a>
+      </nav>
 
-    <div class="upi-box">
-      <div class="small muted">Pay to</div>
-      <div class="upi"><%= upiId %></div>
-      <div class="small muted"><%= payeeName %></div>
-      <% if (businessPhone) { %><div class="small muted">Or call <%= businessPhone %> for bank transfer details</div><% } %>
-    </div>
-
-    <% if (error) { %><div class="error"><%= error %></div><% } %>
-    <form class="stack" method="post" action="/case/<%= c.id %>/pay">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div>
-        <label>UPI / bank transaction reference</label>
-        <input type="text" name="payment_reference" required placeholder="e.g. UPI Ref 123456789012" value="<%= c.payment_reference || '' %>">
+      <div class="sidebar-contact">
+        <div class="sidebar-header">Contact</div>
+        <p><strong>Phone:</strong> <%= businessPhone %></p>
+        <p><strong>Email:</strong> <%= businessEmail %></p>
+        <p><strong>WhatsApp:</strong> <%= businessWhatsapp %></p>
       </div>
-      <button class="btn" type="submit">I've paid — continue</button>
-    </form>
+    </aside>
+
+    <div class="content-panel" style="max-width:640px">
+      <div class="steps">
+        <span class="step">1. Choose service</span>
+        <span class="step active">2. Pay</span>
+        <span class="step">3. Tell us about your home</span>
+        <span class="step">4. Upload quotes</span>
+        <span class="step">5. Submit</span>
+      </div>
+      <h1 style="font-size:1.4rem;color:var(--brand)"><%= service.label %> — ₹<%= service.price.toLocaleString('en-IN') %></h1>
+      <p class="muted small">Choose a payment method below, complete the transfer, and then enter the reference number so we can confirm it.
+        We begin once the payment is verified.</p>
+
+      <div class="upi-box">
+        <div class="small muted">Pay to</div>
+        <div class="upi"><%= upiId %></div>
+        <div class="small muted"><%= payeeName %></div>
+        <div class="payment-methods">
+          <% supportedMethods.forEach(function(method) { %>
+            <span><%= method %></span>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="card info-box">
+        <h3>Need help with payment?</h3>
+        <p class="small muted" style="margin:0">Call <strong><%= businessPhone %></strong> or email <strong><%= businessEmail %></strong> for bank transfer details, confirmation, or WhatsApp support.</p>
+      </div>
+
+      <% if (error) { %><div class="error"><%= error %></div><% } %>
+      <form class="stack" method="post" action="/case/<%= c.id %>/pay">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div>
+          <label>UPI / bank / payment reference</label>
+          <input type="text" name="payment_reference" required placeholder="e.g. UPI Ref 123456789012 or Bank Txn 7654321" value="<%= c.payment_reference || '' %>">
+        </div>
+        <button class="btn" type="submit">I've paid — continue</button>
+      </form>
+    </div>
   </div>
 </main>
 <%- include('partials/footer') %>
