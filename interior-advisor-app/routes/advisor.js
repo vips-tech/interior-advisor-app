@@ -9,16 +9,14 @@ const aiPrompts = require('../content/ai_prompts');
 const { renderReportPdf } = require('../lib/reportPdf');
 
 // ---- Advisor password check (bcrypt) ----
-// ADVISOR_PASSWORD_HASH (a bcrypt hash) is the recommended production setting.
-// If only the plaintext ADVISOR_PASSWORD is set, hash it once at module load so
-// the comparison is still a constant-time bcrypt compare rather than a plaintext ===.
-let ADVISOR_PASSWORD_HASH = process.env.ADVISOR_PASSWORD_HASH || null;
-if (!ADVISOR_PASSWORD_HASH && process.env.ADVISOR_PASSWORD) {
-  ADVISOR_PASSWORD_HASH = bcrypt.hashSync(process.env.ADVISOR_PASSWORD, 10);
-}
-
 const DEFAULT_ADVISOR_EMAIL = 'admin@gmail.com';
 const DEFAULT_ADVISOR_PASSWORD = 'admin123';
+// Prefer plaintext when both settings exist, so a stale hash cannot mask an
+// updated ADVISOR_PASSWORD. Every password check remains a bcrypt comparison.
+const configuredAdvisorPassword = (process.env.ADVISOR_PASSWORD || '').trim();
+const ADVISOR_PASSWORD_HASH = configuredAdvisorPassword
+  ? bcrypt.hashSync(configuredAdvisorPassword, 10)
+  : process.env.ADVISOR_PASSWORD_HASH || bcrypt.hashSync(DEFAULT_ADVISOR_PASSWORD, 10);
 
 const EVIDENCE_LABELS = ['CONFIRMED', 'VERIFIED', 'CUSTOMER_REPORTED', 'UNCONFIRMED', 'ADVISOR_ASSESSMENT', 'RISK'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -78,9 +76,8 @@ module.exports = function ({ loginLimiter, verifyCsrf }) {
   router.post('/login', loginLimiter, async (req, res) => {
     const { email, password } = req.body;
     const configuredEmail = (process.env.ADVISOR_EMAIL || DEFAULT_ADVISOR_EMAIL).trim().toLowerCase();
-    const configuredPassword = process.env.ADVISOR_PASSWORD || DEFAULT_ADVISOR_PASSWORD;
     const okEmail = (email || '').trim().toLowerCase() === configuredEmail;
-    const okPass = typeof password === 'string' && password.length > 0 && bcrypt.compareSync(password, ADVISOR_PASSWORD_HASH || bcrypt.hashSync(configuredPassword, 10));
+    const okPass = typeof password === 'string' && password.length > 0 && bcrypt.compareSync(password, ADVISOR_PASSWORD_HASH);
     if (okEmail && okPass) {
       // Regenerate the session on login to prevent session fixation.
       req.session.regenerate((err) => {
