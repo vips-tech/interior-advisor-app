@@ -9,8 +9,8 @@ const aiPrompts = require('../content/ai_prompts');
 const { renderReportPdf } = require('../lib/reportPdf');
 
 // ---- Advisor password check (bcrypt) ----
-const DEFAULT_ADVISOR_EMAIL = 'admin@gmail.com';
-const DEFAULT_ADVISOR_PASSWORD = 'admin123';
+const DEFAULT_ADVISOR_EMAIL = 'admin123@gmail.com';
+const DEFAULT_ADVISOR_PASSWORD = 'advisor123';
 // Prefer plaintext when both settings exist, so a stale hash cannot mask an
 // updated ADVISOR_PASSWORD. Every password check remains a bcrypt comparison.
 const configuredAdvisorPassword = (process.env.ADVISOR_PASSWORD || '').trim();
