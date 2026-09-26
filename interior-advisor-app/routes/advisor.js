@@ -9,14 +9,11 @@ const aiPrompts = require('../content/ai_prompts');
 const { renderReportPdf } = require('../lib/reportPdf');
 
 // ---- Advisor password check (bcrypt) ----
-const DEFAULT_ADVISOR_EMAIL = 'admin123@gmail.com';
-const DEFAULT_ADVISOR_PASSWORD = 'advisor123';
-// Prefer plaintext when both settings exist, so a stale hash cannot mask an
-// updated ADVISOR_PASSWORD. Every password check remains a bcrypt comparison.
+const configuredAdvisorEmail = (process.env.ADVISOR_EMAIL || '').trim().toLowerCase();
 const configuredAdvisorPassword = (process.env.ADVISOR_PASSWORD || '').trim();
 const ADVISOR_PASSWORD_HASH = configuredAdvisorPassword
   ? bcrypt.hashSync(configuredAdvisorPassword, 10)
-  : process.env.ADVISOR_PASSWORD_HASH || bcrypt.hashSync(DEFAULT_ADVISOR_PASSWORD, 10);
+  : process.env.ADVISOR_PASSWORD_HASH || null;
 
 const EVIDENCE_LABELS = ['CONFIRMED', 'VERIFIED', 'CUSTOMER_REPORTED', 'UNCONFIRMED', 'ADVISOR_ASSESSMENT', 'RISK'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -75,9 +72,8 @@ module.exports = function ({ loginLimiter, verifyCsrf }) {
   // Every other state-changing route in this router does go through verifyCsrf.
   router.post('/login', loginLimiter, async (req, res) => {
     const { email, password } = req.body;
-    const configuredEmail = (process.env.ADVISOR_EMAIL || DEFAULT_ADVISOR_EMAIL).trim().toLowerCase();
-    const okEmail = (email || '').trim().toLowerCase() === configuredEmail;
-    const okPass = typeof password === 'string' && password.length > 0 && bcrypt.compareSync(password, ADVISOR_PASSWORD_HASH);
+    const okEmail = Boolean(configuredAdvisorEmail) && (email || '').trim().toLowerCase() === configuredAdvisorEmail;
+    const okPass = Boolean(ADVISOR_PASSWORD_HASH) && typeof password === 'string' && password.length > 0 && bcrypt.compareSync(password, ADVISOR_PASSWORD_HASH);
     if (okEmail && okPass) {
       // Regenerate the session on login to prevent session fixation.
       req.session.regenerate((err) => {
