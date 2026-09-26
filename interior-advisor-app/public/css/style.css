@@ -89,6 +89,12 @@ table th{background:#f3f2ee}
 .comparison-table thead .sticky-col{background:#f7f5f2}
 .comparison-table .value-cell{white-space:pre-wrap;word-break:break-word;max-width:220px}
 .comparison-table .attribute-cell{min-width:180px}
+.customer-comparison-wrap{margin-top:12px}
+.customer-comparison-table{min-width:760px}
+.customer-comparison-table thead th{min-width:220px;vertical-align:top}
+.customer-comparison-table thead th.sticky-col{min-width:190px}
+.customer-comparison-table thead th span{display:block;margin-top:4px;font-weight:400}
+.customer-comparison-table textarea{width:100%;min-width:180px;min-height:58px;margin:0;font-size:.82rem;resize:vertical}
 .comparison-status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:700;text-transform:capitalize;white-space:nowrap}
 .comparison-status.COMPARABLE{background:#eaf6ee;color:var(--ok);border:1px solid #cfe8d9}
 .comparison-status.NOT_YET_COMPARABLE{background:#fff4e5;color:var(--warn);border:1px solid #f3ddab}

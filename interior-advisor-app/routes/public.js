@@ -20,6 +20,16 @@ const MAX_QUOTES_PER_CASE = 12; // overall documents (quotations + supporting) p
 const MAX_QUOTATION_DOCS_PER_CASE = 6; // quotation documents specifically, separate from supporting docs
 const DOC_TYPES = new Set(['QUOTATION', 'SUPPORTING']);
 const DOC_SUBTYPES = new Set(['Floor plan', 'Photo', 'Previous communication', 'Reference design', 'Other']);
+const CUSTOMER_COMPARE_FIELDS = [
+  { key: 'total_price', label: 'Total quoted price', placeholder: 'e.g. ₹12,00,000' },
+  { key: 'kitchen_scope', label: 'Kitchen scope', placeholder: 'Cabinets, countertop, accessories...' },
+  { key: 'storage_scope', label: 'Wardrobes and storage', placeholder: 'Rooms, finishes, internal fittings...' },
+  { key: 'materials', label: 'Materials and finishes', placeholder: 'Board, laminate, countertop, paint...' },
+  { key: 'hardware', label: 'Hardware and fittings', placeholder: 'Brands, models, included fittings...' },
+  { key: 'exclusions', label: 'Exclusions and extra costs', placeholder: 'Items not included or charged separately...' },
+  { key: 'timeline', label: 'Timeline, payment, warranty', placeholder: 'Lead time, milestones, warranty...' },
+  { key: 'other', label: 'Other notes', placeholder: 'Anything else you want us to compare...' },
+];
 
 const ALLOWED_EXT = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.doc', '.docx'];
 const ALLOWED_MIME = new Set([
@@ -82,6 +92,26 @@ function validateIntake(body) {
 
 module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
   const router = express.Router();
+
+  async function renderUpload(req, res, c, options = {}) {
+    const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
+    const quotationQuotes = quotes.filter(q => (q.doc_type || 'QUOTATION') === 'QUOTATION');
+    const customerComparisons = await db.prepare(`
+      SELECT * FROM comparison_rows WHERE case_id = ? AND status = 'CUSTOMER_REPORTED' ORDER BY sort_order, id
+    `).all(c.id);
+
+    return res.status(options.status || 200).render('upload', {
+      c,
+      quotes,
+      quotationQuotes,
+      customerComparisons,
+      comparisonFields: CUSTOMER_COMPARE_FIELDS,
+      comparisonSaved: req.query.comparison === 'saved',
+      error: options.error || null,
+      locked: options.locked ?? !CUSTOMER_EDITABLE_STATUSES.has(c.status),
+      ...legal,
+    });
+  }
 
   router.get('/terms', async (req, res) => res.render('terms', legal));
   router.get('/privacy', async (req, res) => res.render('privacy', legal));
@@ -185,8 +215,7 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
   router.get('/case/:id/upload', async (req, res) => {
     const c = await getCaseOr404(req, res);
     if (!c) return;
-    const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
-    res.render('upload', { c, quotes, error: null, locked: !CUSTOMER_EDITABLE_STATUSES.has(c.status), ...legal });
+    return renderUpload(req, res, c);
   });
 
   router.post('/case/:id/upload', uploadLimiter, async (req, res, next) => {
@@ -194,33 +223,31 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
     if (!c) return;
     if (!CUSTOMER_EDITABLE_STATUSES.has(c.status)) {
       // once the case has been submitted the advisor may already be working on it — lock further customer uploads
-      const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
-      return res.status(403).render('upload', { c, quotes, error: 'This case has already been submitted and can no longer be modified. Please contact us if you need to add something.', locked: true, ...legal });
+      return renderUpload(req, res, c, {
+        error: 'This case has already been submitted and can no longer be modified. Please contact us if you need to add something.',
+        locked: true,
+        status: 403,
+      });
     }
     const existingCount = (await db.prepare('SELECT COUNT(*) n FROM quotes WHERE case_id = ?').get(c.id)).n;
     if (existingCount >= MAX_QUOTES_PER_CASE) {
-      const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
-      return res.render('upload', { c, quotes, error: `You can upload up to ${MAX_QUOTES_PER_CASE} documents per case.`, locked: false, ...legal });
+      return renderUpload(req, res, c, { error: `You can upload up to ${MAX_QUOTES_PER_CASE} documents per case.`, locked: false });
     }
     // multer parses the multipart body first, THEN we can check req.body._csrf —
     // form fields (including _csrf) aren't populated until multer has run.
     upload.single('quote_file')(req, res, async (err) => {
-      const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
-
       if (err) {
-        return res.render('upload', { c, quotes, error: err.message, locked: false, ...legal });
+        return renderUpload(req, res, c, { error: err.message, locked: false });
       }
       if (!req.session || req.body._csrf !== req.session.csrfToken) {
         return res.status(403).send('Invalid or missing CSRF token. Please reload the page and try again.');
       }
 
       if (!isSupabaseStorageConfigured()) {
-        return res.status(500).render('upload', {
-          c,
-          quotes,
+        return renderUpload(req, res, c, {
           error: 'File uploads are not configured on this server. Add SUPABASE_URL and SUPABASE_SECRET_KEY, then create the private bucket "interior-advisor-files" in Supabase.',
           locked: false,
-          ...legal,
+          status: 500,
         });
       }
 
@@ -228,7 +255,7 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
       if (docType === 'QUOTATION') {
         const quotationCount = (await db.prepare(`SELECT COUNT(*) n FROM quotes WHERE case_id = ? AND (doc_type = 'QUOTATION' OR doc_type IS NULL)`).get(c.id)).n;
         if (quotationCount >= MAX_QUOTATION_DOCS_PER_CASE) {
-          return res.render('upload', { c, quotes, error: `You can upload up to ${MAX_QUOTATION_DOCS_PER_CASE} quotation documents per case.`, locked: false, ...legal });
+          return renderUpload(req, res, c, { error: `You can upload up to ${MAX_QUOTATION_DOCS_PER_CASE} quotation documents per case.`, locked: false });
         }
       }
       if (req.file) {
@@ -250,7 +277,7 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
           if (error.message && /bucket|not found|403|forbidden|invalid/i.test(error.message)) {
             uploadMessage = 'Supabase storage is not configured correctly. Create the private bucket "interior-advisor-files" and ensure the app has storage write permission.';
           }
-          return res.status(500).render('upload', { c, quotes, error: uploadMessage, locked: false, ...legal });
+          return renderUpload(req, res, c, { error: uploadMessage, locked: false, status: 500 });
         }
 
         console.log('Uploaded:', data.path);
@@ -262,6 +289,43 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
       }
       res.redirect(`/case/${c.id}/upload`);
     });
+  });
+
+  router.post('/case/:id/compare', verifyCsrf, async (req, res) => {
+    const c = await getCaseOr404(req, res);
+    if (!c) return;
+    if (!CUSTOMER_EDITABLE_STATUSES.has(c.status)) {
+      return res.status(403).send('This case can no longer be modified.');
+    }
+
+    const quotationQuotes = await db.prepare(`
+      SELECT id FROM quotes WHERE case_id = ? AND (doc_type = 'QUOTATION' OR doc_type IS NULL) ORDER BY id
+    `).all(c.id);
+    const rows = [];
+
+    CUSTOMER_COMPARE_FIELDS.forEach((field, sortOrder) => {
+      const quoteValues = {};
+      quotationQuotes.forEach((quote) => {
+        const value = req.body[`compare_${field.key}_${quote.id}`];
+        if (typeof value === 'string' && value.trim()) {
+          quoteValues[String(quote.id)] = value.trim().slice(0, 1000);
+        }
+      });
+
+      if (Object.keys(quoteValues).length) {
+        rows.push({ attribute: field.label, quoteValues, sortOrder });
+      }
+    });
+
+    await db.prepare(`DELETE FROM comparison_rows WHERE case_id = ? AND status = 'CUSTOMER_REPORTED'`).run(c.id);
+    for (const row of rows) {
+      await db.prepare(`
+        INSERT INTO comparison_rows (case_id, attribute, quote_values, status, sort_order)
+        VALUES (?, ?, ?, 'CUSTOMER_REPORTED', ?)
+      `).run(c.id, row.attribute, JSON.stringify(row.quoteValues), row.sortOrder);
+    }
+
+    res.redirect(`/case/${c.id}/upload?comparison=saved#quote-comparison`);
   });
 
   router.post('/case/:id/upload/:quoteId/delete', verifyCsrf, async (req, res) => {
@@ -293,10 +357,10 @@ module.exports = function ({ startCaseLimiter, uploadLimiter, verifyCsrf }) {
     const quotes = await db.prepare('SELECT * FROM quotes WHERE case_id = ? ORDER BY id').all(c.id);
     const quotationCount = quotes.filter(q => (q.doc_type || 'QUOTATION') === 'QUOTATION').length;
     if (quotationCount < 1) {
-      return res.render('upload', { c, quotes, error: 'Please upload at least one quotation before submitting.', locked: false, ...legal });
+      return renderUpload(req, res, c, { error: 'Please upload at least one quotation before submitting.', locked: false });
     }
     if (!req.body.agree_terms) {
-      return res.render('upload', { c, quotes, error: 'Please confirm you have read and agree to the Terms, Privacy Policy and Disclaimer before submitting.', locked: false, ...legal });
+      return renderUpload(req, res, c, { error: 'Please confirm you have read and agree to the Terms, Privacy Policy and Disclaimer before submitting.', locked: false });
     }
     await db.prepare(`UPDATE cases SET status = 'IN_REVIEW', agreed_terms_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(c.id);
     res.redirect(`/case/${c.id}/submitted`);

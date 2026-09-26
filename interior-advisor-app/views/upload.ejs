@@ -104,6 +104,55 @@
         <% } %>
       </div>
 
+      <div class="section" id="quote-comparison">
+        <h2 style="font-size:1.05rem">Compare your quotes</h2>
+        <p class="muted small">Enter the details from each quotation side by side. These are your notes for comparison, not an independent assessment by our advisor.</p>
+        <% if (comparisonSaved) { %>
+          <div class="notice">Your comparison is saved with this case and will be available to your advisor.</div>
+        <% } %>
+        <% if (quotationQuotes.length === 0) { %>
+          <div class="notice">Upload quotation files to start your comparison. Supporting documents are not included.</div>
+        <% } else { %>
+          <% const savedComparisonValues = Object.fromEntries(customerComparisons.map(row => [row.attribute, JSON.parse(row.quote_values || '{}')])); %>
+          <% if (quotationQuotes.length < 2) { %>
+            <p class="muted small">Upload at least one more quotation to compare companies side by side.</p>
+          <% } %>
+          <form class="stack" method="post" action="/case/<%= c.id %>/compare">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="comparison-table-wrap customer-comparison-wrap">
+              <table class="comparison-table customer-comparison-table">
+                <thead>
+                  <tr>
+                    <th class="sticky-col">Cost and scope</th>
+                    <% quotationQuotes.forEach(q => { %>
+                      <th>
+                        <strong><%= q.company_name || 'Unnamed company' %></strong>
+                        <span class="muted small"><%= q.original_filename %></span>
+                      </th>
+                    <% }) %>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% comparisonFields.forEach(field => { const values = savedComparisonValues[field.label] || {}; %>
+                    <tr>
+                      <th class="sticky-col attribute-cell"><%= field.label %></th>
+                      <% quotationQuotes.forEach(q => { %>
+                        <td>
+                          <textarea class="customer-comparison-input" name="compare_<%= field.key %>_<%= q.id %>" rows="2" maxlength="1000" placeholder="<%= field.placeholder %>" <%= locked ? 'readonly' : '' %>><%= values[String(q.id)] || '' %></textarea>
+                        </td>
+                      <% }) %>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <% if (!locked) { %>
+              <button class="btn outline" type="submit">Save comparison</button>
+            <% } %>
+          </form>
+        <% } %>
+      </div>
+
       <% if (!locked) { %>
       <form method="post" action="/case/<%= c.id %>/submit" class="stack">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
