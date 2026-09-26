@@ -4,13 +4,28 @@
 <body class="landing-page">
   <header class="landing-header">
     <div class="landing-header-inner">
-      <div class="landing-brand" aria-label="Interior Decision Advisor home">
+      <a class="landing-brand" href="/" aria-label="Interior Decision Advisor home">
         <span class="landing-brand-mark" aria-hidden="true"></span>
-        <span class="landing-brand-name">Interior Decision Advisor</span>
-      </div>
+        <span class="landing-brand-copy">
+          <span class="landing-brand-name">Interior Decision Advisor</span>
+          <span class="landing-tagline">Your home. Your money. Your decision.</span>
+        </span>
+      </a>
 
       <div class="landing-header-right">
-        <span class="landing-tagline">Your home. Your money. Your decision.</span>
+        <button class="landing-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="landingMenu" title="Open menu">
+          <span class="landing-menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
+        <nav class="landing-menu" id="landingMenu" aria-label="Main navigation" hidden>
+          <a href="#services">Services</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#about">Why choose us</a>
+          <a href="#faq">FAQ</a>
+          <a class="landing-menu-action" href="/start">Start a CHECK or VERIFY</a>
+          <a class="landing-menu-action" href="/talk-to-advisor">Talk to an Advisor</a>
+          <a href="/advisor/login">Advisor login</a>
+        </nav>
       </div>
     </div>
   </header>
@@ -37,7 +52,7 @@
         <h2>Help at different points in your journey</h2>
         <p class="muted small">CHECK and VERIFY (below) are our two structured, pay-online services — but they're
           not the whole business. Depending on where you are, we can also help with things like:</p>
-        <ul class="small muted" style="padding-left:18px">
+        <ul class="small muted">
           <li>Independent decision consultation before you've chosen an interior company</li>
           <li>Understanding your options and the trade-offs between them</li>
           <li>Reviewing an important decision or final quotation before you sign</li>
@@ -48,7 +63,7 @@
           you how we can help. <a href="/talk-to-advisor">Talk to an Advisor →</a></p>
       </div>
 
-      <div class="section">
+      <div class="section" id="services">
         <h2>The two services you can start online today</h2>
         <div class="grid-2">
           <div class="card service-card">
@@ -82,7 +97,7 @@
 
       <div class="section" id="how-it-works">
         <h2>How it works</h2>
-        <ol class="small muted" style="padding-left:18px">
+        <ol class="small muted">
           <li>Choose CHECK or VERIFY and complete payment.</li>
           <li>Tell us about your home, budget and priorities.</li>
           <li>Upload the quotations you've received.</li>
@@ -134,7 +149,7 @@
           not to design or build.</p>
       </div>
 
-      <div class="section" id="faq" style="text-align:center">
+      <div class="section" id="faq">
         <h2>Frequently asked questions</h2>
         <p class="muted">We are not a sales channel for interior companies. We help you understand what is really being offered and what decision you should make.</p>
         <p class="muted">Need a custom answer? <a href="/talk-to-advisor">Tell us what you need</a></p>
@@ -162,32 +177,6 @@
   </div>
 </main>
 <%- include('partials/footer') %>
-
-<script>
-  function toggleLandingMenu(button) {
-    const menu = document.getElementById('landingMenu');
-    if (!menu) return;
-
-    const isOpen = menu.classList.contains('open');
-    const nextState = !isOpen;
-
-    menu.classList.toggle('open', nextState);
-    button.setAttribute('aria-expanded', String(nextState));
-  }
-
-  document.addEventListener('click', function (event) {
-    const button = document.querySelector('.landing-menu-toggle');
-    const menu = document.getElementById('landingMenu');
-    if (!button || !menu) return;
-
-    const clickedInsideButton = button.contains(event.target);
-    const clickedInsideMenu = menu.contains(event.target);
-
-    if (!clickedInsideButton && !clickedInsideMenu) {
-      menu.classList.remove('open');
-      button.setAttribute('aria-expanded', 'false');
-    }
-  });
-</script>
+<script src="/public/js/landing.js" defer></script>
 </body>
 </html>
